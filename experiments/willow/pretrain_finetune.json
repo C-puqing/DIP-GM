@@ -1,0 +1,22 @@
+{
+  "default_json": "experiments/voc_basic.json",
+  "DATASET_NAME": "WillowObject",
+  "MIP": {
+    "lambda_val": 80.0,
+    "solver_params": {
+      "LogToConsole" : 0,
+      "NumericFocus" : 2,
+      "Presovle" : 2,
+      "LogFile" : "results/pretrain_finetune/miplog.log"
+    }
+  },
+  "TRAIN": {
+    "EPOCH_ITERS": 200,
+    "lr_schedule": "short_halving"
+  },
+  "warmstart_path": "results/cached_weights/params/0010",
+  "EVAL": {
+    "SAMPLES": 100
+  },
+  "model_dir": "results/pretrain_finetune"
+}

@@ -1,0 +1,30 @@
+{
+  "default_json": "experiments/voc_basic.json",
+  "DATASET_NAME": "SPair71k",
+  "model_dir": "results/spair",
+  "TRAIN": {
+    "EPOCH_ITERS": 400,
+    "difficulty_params": {
+    }
+  },
+  "EVAL": {
+    "SAMPLES": null,
+    "difficulty_params": {
+    }
+  },
+  "MIP": {
+    "lambda_val": 80.0,
+    "solver_params": {
+      "LogToConsole" : 0,
+      "NumericFocus" : 2,
+      "Presovle" : 2,
+      "LogFile" : "results/spair/miplog.log"
+    }
+  },
+  "visualize": false,
+  "visualization_params": {
+    "reduced_vis": true,
+    "produce_pdf": false
+  },
+  "combine_classes": false
+}
