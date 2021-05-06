@@ -1,4 +1,4 @@
-# Mix-ILP-and-Deep-Graph-Matching
+# Mix-ILP-and-Deep-Graph-Matching (Unfinished)
 This branch is the version of experiment 2.0. 
 In this version, we use the novel loss fucntion instead of Hamming loss implemted by "DIFFERENTIATION OF BLACKBOX COMBINATORIAL
 SOLVERS".
