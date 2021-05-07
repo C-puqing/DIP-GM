@@ -1,0 +1,395 @@
+Start training...
+model on device: cuda:0
+Epoch 0/9
+----------
+lr = 2.00e-05, 2.00e-03
+Academic license - for non-commercial use only - expires 2021-06-06
+Using license file /home/chen/gurobi.lic
+Epoch 0    Iter 20   0.29sample/s Loss=11.6062  Accuracy=0.11 F1=0.111
+Epoch 0    Iter 40   0.35sample/s Loss=12.0125  Accuracy=0.0921 F1=0.0921
+Epoch 0    Iter 60   0.29sample/s Loss=12.4625  Accuracy=0.102 F1=0.102
+Epoch 0    Iter 80   0.25sample/s Loss=13.1125  Accuracy=0.0856 F1=0.0856
+Epoch 0    Iter 100  0.31sample/s Loss=12.3750  Accuracy=0.117 F1=0.117
+Epoch 0    Iter 120  0.36sample/s Loss=11.3500  Accuracy=0.132 F1=0.132
+Epoch 0    Iter 140  0.33sample/s Loss=11.9250  Accuracy=0.144 F1=0.144
+Epoch 0    Iter 160  0.26sample/s Loss=12.7875  Accuracy=0.143 F1=0.143
+Epoch 0    Iter 180  0.34sample/s Loss=11.2750  Accuracy=0.175 F1=0.175
+Epoch 0    Iter 200  0.30sample/s Loss=11.9750  Accuracy=0.136 F1=0.136
+Over whole epoch 0    -------- Loss: 12.0881 Accuracy: 0.124 F1: 0.124
+
+Start evaluation...
+Evaluation complete in 49m 48s
+Matching accuracy
+aeroplane = 0.3738, 0.3738
+bicycle = 0.4349, 0.4349
+bird = 0.6248, 0.6248
+boat = 0.6054, 0.6054
+bottle = 0.7719, 0.7719
+bus = 0.7585, 0.7585
+car = 0.6315, 0.6315
+cat = 0.6411, 0.6411
+chair = 0.3471, 0.3471
+cow = 0.5720, 0.5720
+diningtable = 0.8933, 0.8933
+dog = 0.4864, 0.4864
+horse = 0.6392, 0.6392
+motorbike = 0.4807, 0.4807
+person = 0.4520, 0.4520
+pottedplant = 0.9763, 0.9763
+sheep = 0.5870, 0.5874
+sofa = 0.5532, 0.5532
+train = 0.9867, 0.9867
+tvmonitor = 0.9224, 0.9224
+average = 0.6369, 0.6369
+Epoch 1/9
+----------
+lr = 2.00e-05, 2.00e-03
+Epoch 1    Iter 20   0.31sample/s Loss=10.9187  Accuracy=0.206 F1=0.206
+Epoch 1    Iter 40   0.31sample/s Loss=11.5500  Accuracy=0.157 F1=0.157
+Epoch 1    Iter 60   0.31sample/s Loss=11.8812  Accuracy=0.177 F1=0.177
+Epoch 1    Iter 80   0.31sample/s Loss=10.8750  Accuracy=0.219 F1=0.219
+Epoch 1    Iter 100  0.36sample/s Loss=9.4688   Accuracy=0.291 F1=0.292
+Epoch 1    Iter 120  0.35sample/s Loss=10.1562  Accuracy=0.264 F1=0.264
+Epoch 1    Iter 140  0.29sample/s Loss=12.0875  Accuracy=0.182 F1=0.182
+Epoch 1    Iter 160  0.32sample/s Loss=10.3750  Accuracy=0.265 F1=0.265
+Epoch 1    Iter 180  0.38sample/s Loss=10.4250  Accuracy=0.226 F1=0.226
+Epoch 1    Iter 200  0.33sample/s Loss=10.0687  Accuracy=0.301 F1=0.301
+Over whole epoch 1    -------- Loss: 10.7806 Accuracy: 0.229 F1: 0.229
+
+Start evaluation...
+Evaluation complete in 48m 18s
+Matching accuracy
+aeroplane = 0.3900, 0.3900
+bicycle = 0.4594, 0.4594
+bird = 0.5812, 0.5812
+boat = 0.6031, 0.6031
+bottle = 0.7984, 0.7984
+bus = 0.7720, 0.7720
+car = 0.6573, 0.6573
+cat = 0.6446, 0.6446
+chair = 0.3575, 0.3575
+cow = 0.6684, 0.6684
+diningtable = 0.7929, 0.7929
+dog = 0.5829, 0.5829
+horse = 0.7012, 0.7012
+motorbike = 0.5610, 0.5610
+person = 0.4771, 0.4771
+pottedplant = 0.9704, 0.9704
+sheep = 0.6696, 0.6696
+sofa = 0.5935, 0.5935
+train = 0.9800, 0.9800
+tvmonitor = 0.9391, 0.9391
+average = 0.6600, 0.6600
+Epoch 2/9
+----------
+lr = 1.00e-05, 1.00e-03
+Epoch 2    Iter 20   0.35sample/s Loss=9.9125   Accuracy=0.278 F1=0.278
+Epoch 2    Iter 40   0.32sample/s Loss=10.1625  Accuracy=0.299 F1=0.299
+Epoch 2    Iter 60   0.29sample/s Loss=9.8500   Accuracy=0.313 F1=0.313
+Epoch 2    Iter 80   0.34sample/s Loss=8.1000   Accuracy=0.398 F1=0.398
+Epoch 2    Iter 100  0.33sample/s Loss=9.7375   Accuracy=0.314 F1=0.314
+Epoch 2    Iter 120  0.29sample/s Loss=9.3625   Accuracy=0.356 F1=0.356
+Epoch 2    Iter 140  0.34sample/s Loss=9.8500   Accuracy=0.276 F1=0.276
+Epoch 2    Iter 160  0.29sample/s Loss=10.0625  Accuracy=0.319 F1=0.319
+Epoch 2    Iter 180  0.36sample/s Loss=8.4375   Accuracy=0.382 F1=0.382
+Epoch 2    Iter 200  0.32sample/s Loss=8.9500   Accuracy=0.372 F1=0.372
+Over whole epoch 2    -------- Loss: 9.4425 Accuracy: 0.331 F1: 0.331
+
+Start evaluation...
+Evaluation complete in 47m 29s
+Matching accuracy
+aeroplane = 0.4085, 0.4085
+bicycle = 0.5602, 0.5602
+bird = 0.6824, 0.6824
+boat = 0.7108, 0.7108
+bottle = 0.8170, 0.8170
+bus = 0.8217, 0.8217
+car = 0.6746, 0.6746
+cat = 0.7305, 0.7305
+chair = 0.3767, 0.3767
+cow = 0.6964, 0.6964
+diningtable = 0.6841, 0.6841
+dog = 0.6002, 0.6002
+horse = 0.7587, 0.7587
+motorbike = 0.6414, 0.6414
+person = 0.5166, 0.5166
+pottedplant = 0.9803, 0.9803
+sheep = 0.6797, 0.6797
+sofa = 0.6387, 0.6387
+train = 0.9867, 0.9867
+tvmonitor = 0.9391, 0.9391
+average = 0.6952, 0.6952
+Epoch 3/9
+----------
+lr = 1.00e-05, 1.00e-03
+Epoch 3    Iter 20   0.38sample/s Loss=7.9688   Accuracy=0.394 F1=0.394
+Epoch 3    Iter 40   0.36sample/s Loss=9.4750   Accuracy=0.328 F1=0.329
+Epoch 3    Iter 60   0.36sample/s Loss=8.1000   Accuracy=0.406 F1=0.406
+Epoch 3    Iter 80   0.31sample/s Loss=8.9250   Accuracy=0.381 F1=0.381
+Epoch 3    Iter 100  0.30sample/s Loss=8.3375   Accuracy=0.424 F1=0.424
+Epoch 3    Iter 120  0.31sample/s Loss=8.6250   Accuracy=0.403 F1=0.403
+Epoch 3    Iter 140  0.32sample/s Loss=9.3375   Accuracy=0.349 F1=0.349
+Epoch 3    Iter 160  0.39sample/s Loss=7.8750   Accuracy=0.391 F1=0.391
+Epoch 3    Iter 180  0.36sample/s Loss=8.0875   Accuracy=0.395 F1=0.395
+Epoch 3    Iter 200  0.39sample/s Loss=7.7625   Accuracy=0.416 F1=0.416
+Over whole epoch 3    -------- Loss: 8.4494 Accuracy: 0.389 F1: 0.389
+
+Start evaluation...
+Evaluation complete in 46m 48s
+Matching accuracy
+aeroplane = 0.4171, 0.4171
+bicycle = 0.5828, 0.5828
+bird = 0.7155, 0.7155
+boat = 0.5919, 0.5919
+bottle = 0.8183, 0.8183
+bus = 0.7946, 0.7946
+car = 0.6832, 0.6832
+cat = 0.7050, 0.7050
+chair = 0.3383, 0.3383
+cow = 0.7285, 0.7285
+diningtable = 0.8243, 0.8243
+dog = 0.6300, 0.6300
+horse = 0.7306, 0.7306
+motorbike = 0.6458, 0.6458
+person = 0.5381, 0.5381
+pottedplant = 0.9783, 0.9783
+sheep = 0.7174, 0.7174
+sofa = 0.6694, 0.6694
+train = 0.9867, 0.9867
+tvmonitor = 0.9391, 0.9391
+average = 0.7017, 0.7017
+Epoch 4/9
+----------
+lr = 5.00e-06, 5.00e-04
+Epoch 4    Iter 20   0.34sample/s Loss=8.6500   Accuracy=0.382 F1=0.382
+Epoch 4    Iter 40   0.30sample/s Loss=8.9125   Accuracy=0.401 F1=0.401
+Epoch 4    Iter 60   0.37sample/s Loss=8.7812   Accuracy=0.387 F1=0.387
+Epoch 4    Iter 80   0.39sample/s Loss=9.0250   Accuracy=0.325 F1=0.325
+Epoch 4    Iter 100  0.31sample/s Loss=8.2063   Accuracy=0.438 F1=0.438
+Epoch 4    Iter 120  0.41sample/s Loss=8.3500   Accuracy=0.377 F1=0.377
+Epoch 4    Iter 140  0.36sample/s Loss=7.2125   Accuracy=0.468 F1=0.468
+Epoch 4    Iter 160  0.33sample/s Loss=7.7000   Accuracy=0.454 F1=0.454
+Epoch 4    Iter 180  0.33sample/s Loss=7.5875   Accuracy=0.473 F1=0.473
+Epoch 4    Iter 200  0.35sample/s Loss=8.2625   Accuracy=0.405 F1=0.405
+Over whole epoch 4    -------- Loss: 8.2688 Accuracy: 0.411 F1: 0.411
+
+Start evaluation...
+Evaluation complete in 47m 10s
+Matching accuracy
+aeroplane = 0.4193, 0.4193
+bicycle = 0.6327, 0.6327
+bird = 0.7277, 0.7277
+boat = 0.6614, 0.6614
+bottle = 0.8263, 0.8263
+bus = 0.8600, 0.8600
+car = 0.7220, 0.7220
+cat = 0.7294, 0.7294
+chair = 0.3648, 0.3648
+cow = 0.7378, 0.7378
+diningtable = 0.9038, 0.9038
+dog = 0.6770, 0.6770
+horse = 0.7554, 0.7554
+motorbike = 0.6949, 0.6949
+person = 0.5345, 0.5345
+pottedplant = 0.9803, 0.9803
+sheep = 0.7217, 0.7217
+sofa = 0.6742, 0.6742
+train = 0.9867, 0.9867
+tvmonitor = 0.9446, 0.9446
+average = 0.7277, 0.7277
+Epoch 5/9
+----------
+lr = 5.00e-06, 5.00e-04
+Epoch 5    Iter 20   0.35sample/s Loss=8.0375   Accuracy=0.421 F1=0.421
+Epoch 5    Iter 40   0.31sample/s Loss=9.0625   Accuracy=0.382 F1=0.382
+Epoch 5    Iter 60   0.35sample/s Loss=7.1437   Accuracy=0.506 F1=0.506
+Epoch 5    Iter 80   0.31sample/s Loss=8.0375   Accuracy=0.45 F1=0.45
+Epoch 5    Iter 100  0.43sample/s Loss=6.5875   Accuracy=0.494 F1=0.494
+Epoch 5    Iter 120  0.34sample/s Loss=7.3375   Accuracy=0.481 F1=0.481
+Epoch 5    Iter 140  0.37sample/s Loss=6.7375   Accuracy=0.501 F1=0.501
+Epoch 5    Iter 160  0.40sample/s Loss=6.2625   Accuracy=0.538 F1=0.538
+Epoch 5    Iter 180  0.32sample/s Loss=7.0500   Accuracy=0.51 F1=0.51
+Epoch 5    Iter 200  0.34sample/s Loss=8.3250   Accuracy=0.402 F1=0.402
+Over whole epoch 5    -------- Loss: 7.4581 Accuracy: 0.469 F1: 0.469
+
+Start evaluation...
+Evaluation complete in 45m 34s
+Matching accuracy
+aeroplane = 0.4280, 0.4280
+bicycle = 0.6601, 0.6601
+bird = 0.7138, 0.7138
+boat = 0.6659, 0.6659
+bottle = 0.8316, 0.8316
+bus = 0.8939, 0.8939
+car = 0.7241, 0.7241
+cat = 0.7619, 0.7619
+chair = 0.3634, 0.3634
+cow = 0.7461, 0.7461
+diningtable = 0.8891, 0.8891
+dog = 0.7005, 0.7005
+horse = 0.7599, 0.7599
+motorbike = 0.6815, 0.6815
+person = 0.5758, 0.5758
+pottedplant = 0.9803, 0.9803
+sheep = 0.7217, 0.7217
+sofa = 0.6194, 0.6194
+train = 0.9867, 0.9867
+tvmonitor = 0.9446, 0.9446
+average = 0.7324, 0.7324
+Epoch 6/9
+----------
+lr = 2.50e-06, 2.50e-04
+Epoch 6    Iter 20   0.33sample/s Loss=7.8875   Accuracy=0.444 F1=0.444
+Epoch 6    Iter 40   0.36sample/s Loss=6.6875   Accuracy=0.521 F1=0.521
+Epoch 6    Iter 60   0.40sample/s Loss=6.6250   Accuracy=0.493 F1=0.493
+Epoch 6    Iter 80   0.34sample/s Loss=7.8000   Accuracy=0.447 F1=0.447
+Epoch 6    Iter 100  0.39sample/s Loss=7.4250   Accuracy=0.447 F1=0.447
+Epoch 6    Iter 120  0.32sample/s Loss=7.4000   Accuracy=0.494 F1=0.494
+Epoch 6    Iter 140  0.36sample/s Loss=7.1625   Accuracy=0.478 F1=0.478
+Epoch 6    Iter 160  0.34sample/s Loss=8.2875   Accuracy=0.405 F1=0.405
+Epoch 6    Iter 180  0.39sample/s Loss=8.0000   Accuracy=0.419 F1=0.419
+Epoch 6    Iter 200  0.42sample/s Loss=6.1562   Accuracy=0.533 F1=0.535
+Over whole epoch 6    -------- Loss: 7.3431 Accuracy: 0.468 F1: 0.468
+
+Start evaluation...
+Evaluation complete in 48m 1s
+Matching accuracy
+aeroplane = 0.4550, 0.4550
+bicycle = 0.6611, 0.6611
+bird = 0.7208, 0.7208
+boat = 0.7489, 0.7489
+bottle = 0.8289, 0.8289
+bus = 0.9007, 0.9007
+car = 0.7392, 0.7392
+cat = 0.7654, 0.7654
+chair = 0.3560, 0.3560
+cow = 0.7482, 0.7482
+diningtable = 0.8933, 0.8933
+dog = 0.7092, 0.7092
+horse = 0.7531, 0.7531
+motorbike = 0.6920, 0.6920
+person = 0.5704, 0.5704
+pottedplant = 0.9803, 0.9803
+sheep = 0.7246, 0.7246
+sofa = 0.6452, 0.6452
+train = 0.9933, 0.9933
+tvmonitor = 0.9557, 0.9557
+average = 0.7421, 0.7421
+Epoch 7/9
+----------
+lr = 2.50e-06, 2.50e-04
+Epoch 7    Iter 20   0.30sample/s Loss=6.9125   Accuracy=0.523 F1=0.523
+Epoch 7    Iter 40   0.33sample/s Loss=6.1625   Accuracy=0.557 F1=0.557
+Epoch 7    Iter 60   0.38sample/s Loss=6.7250   Accuracy=0.488 F1=0.488
+Epoch 7    Iter 80   0.36sample/s Loss=7.7000   Accuracy=0.431 F1=0.431
+Epoch 7    Iter 100  0.34sample/s Loss=7.3625   Accuracy=0.464 F1=0.464
+Epoch 7    Iter 120  0.40sample/s Loss=6.6500   Accuracy=0.504 F1=0.504
+Epoch 7    Iter 140  0.33sample/s Loss=7.1625   Accuracy=0.497 F1=0.497
+Epoch 7    Iter 160  0.39sample/s Loss=6.3750   Accuracy=0.525 F1=0.525
+Epoch 7    Iter 180  0.35sample/s Loss=6.8250   Accuracy=0.506 F1=0.506
+Epoch 7    Iter 200  0.36sample/s Loss=7.8500   Accuracy=0.438 F1=0.438
+Over whole epoch 7    -------- Loss: 6.9725 Accuracy: 0.493 F1: 0.493
+
+Start evaluation...
+Evaluation complete in 45m 56s
+Matching accuracy
+aeroplane = 0.4420, 0.4420
+bicycle = 0.6670, 0.6670
+bird = 0.7417, 0.7417
+boat = 0.7646, 0.7646
+bottle = 0.8302, 0.8302
+bus = 0.9007, 0.9007
+car = 0.7543, 0.7543
+cat = 0.7468, 0.7468
+chair = 0.3530, 0.3530
+cow = 0.7523, 0.7523
+diningtable = 0.9142, 0.9142
+dog = 0.7240, 0.7240
+horse = 0.7734, 0.7734
+motorbike = 0.7098, 0.7098
+person = 0.5543, 0.5543
+pottedplant = 0.9882, 0.9882
+sheep = 0.7391, 0.7391
+sofa = 0.7194, 0.7194
+train = 0.9933, 0.9933
+tvmonitor = 0.9668, 0.9668
+average = 0.7518, 0.7518
+Epoch 8/9
+----------
+lr = 1.25e-06, 1.25e-04
+Epoch 8    Iter 20   0.39sample/s Loss=6.7500   Accuracy=0.488 F1=0.488
+Epoch 8    Iter 40   0.36sample/s Loss=6.9125   Accuracy=0.49 F1=0.49
+Epoch 8    Iter 60   0.38sample/s Loss=6.5875   Accuracy=0.507 F1=0.507
+Epoch 8    Iter 80   0.34sample/s Loss=7.0125   Accuracy=0.505 F1=0.505
+Epoch 8    Iter 100  0.34sample/s Loss=7.0500   Accuracy=0.512 F1=0.512
+Epoch 8    Iter 120  0.39sample/s Loss=6.4125   Accuracy=0.528 F1=0.528
+Epoch 8    Iter 140  0.34sample/s Loss=7.9750   Accuracy=0.443 F1=0.443
+Epoch 8    Iter 160  0.31sample/s Loss=8.0500   Accuracy=0.461 F1=0.461
+Epoch 8    Iter 180  0.33sample/s Loss=7.8125   Accuracy=0.443 F1=0.443
+Epoch 8    Iter 200  0.33sample/s Loss=7.4625   Accuracy=0.484 F1=0.484
+Over whole epoch 8    -------- Loss: 7.2025 Accuracy: 0.486 F1: 0.486
+
+Start evaluation...
+Evaluation complete in 45m 17s
+Matching accuracy
+aeroplane = 0.4312, 0.4312
+bicycle = 0.6807, 0.6807
+bird = 0.7295, 0.7295
+boat = 0.7601, 0.7601
+bottle = 0.8369, 0.8369
+bus = 0.8894, 0.8894
+car = 0.7543, 0.7543
+cat = 0.7805, 0.7805
+chair = 0.3900, 0.3900
+cow = 0.7472, 0.7472
+diningtable = 0.8933, 0.8933
+dog = 0.7191, 0.7191
+horse = 0.7599, 0.7599
+motorbike = 0.6920, 0.6920
+person = 0.5892, 0.5892
+pottedplant = 0.9882, 0.9882
+sheep = 0.7406, 0.7406
+sofa = 0.7435, 0.7435
+train = 0.9933, 0.9933
+tvmonitor = 0.9668, 0.9668
+average = 0.7543, 0.7543
+Epoch 9/9
+----------
+lr = 1.25e-06, 1.25e-04
+Epoch 9    Iter 20   0.38sample/s Loss=6.6500   Accuracy=0.508 F1=0.508
+Epoch 9    Iter 40   0.37sample/s Loss=6.5000   Accuracy=0.525 F1=0.525
+Epoch 9    Iter 60   0.34sample/s Loss=6.6875   Accuracy=0.523 F1=0.523
+Epoch 9    Iter 80   0.33sample/s Loss=6.3125   Accuracy=0.542 F1=0.542
+Epoch 9    Iter 100  0.30sample/s Loss=7.4500   Accuracy=0.48 F1=0.48
+Epoch 9    Iter 120  0.30sample/s Loss=7.1750   Accuracy=0.511 F1=0.511
+Epoch 9    Iter 140  0.36sample/s Loss=6.2000   Accuracy=0.556 F1=0.556
+Epoch 9    Iter 160  0.41sample/s Loss=5.7125   Accuracy=0.571 F1=0.571
+Epoch 9    Iter 180  0.37sample/s Loss=6.7000   Accuracy=0.522 F1=0.522
+Epoch 9    Iter 200  0.35sample/s Loss=7.3875   Accuracy=0.471 F1=0.471
+Over whole epoch 9    -------- Loss: 6.6775 Accuracy: 0.521 F1: 0.521
+
+Start evaluation...
+Evaluation complete in 46m 14s
+Matching accuracy
+aeroplane = 0.4420, 0.4420
+bicycle = 0.6699, 0.6699
+bird = 0.7400, 0.7400
+boat = 0.7556, 0.7556
+bottle = 0.8316, 0.8316
+bus = 0.8939, 0.8939
+car = 0.7543, 0.7543
+cat = 0.7828, 0.7828
+chair = 0.4092, 0.4092
+cow = 0.7523, 0.7523
+diningtable = 0.8264, 0.8264
+dog = 0.7017, 0.7017
+horse = 0.7587, 0.7587
+motorbike = 0.6949, 0.6949
+person = 0.5794, 0.5794
+pottedplant = 0.9842, 0.9842
+sheep = 0.7319, 0.7319
+sofa = 0.7500, 0.7500
+train = 0.9933, 0.9933
+tvmonitor = 0.9668, 0.9668
+average = 0.7509, 0.7509
+Training complete in 20h 58m 11s

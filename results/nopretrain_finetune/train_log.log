@@ -1,0 +1,43 @@
+Start training...
+model on device: cuda:0
+Epoch 0/1
+----------
+lr = 2.00e-05, 2.00e-03
+Academic license - for non-commercial use only - expires 2021-06-06
+Using license file /home/chen/gurobi.lic
+Epoch 0    Iter 20   0.18sample/s Loss=9.7500   Accuracy=0.513 F1=0.512
+Epoch 0    Iter 40   0.20sample/s Loss=2.1250   Accuracy=0.894 F1=0.894
+Epoch 0    Iter 60   0.20sample/s Loss=0.5625   Accuracy=0.972 F1=0.972
+Epoch 0    Iter 80   0.21sample/s Loss=1.0000   Accuracy=0.95 F1=0.95
+Epoch 0    Iter 100  0.20sample/s Loss=0.2875   Accuracy=0.986 F1=0.986
+Over whole epoch 0    -------- Loss: 2.7450 Accuracy: 0.863 F1: 0.863
+
+Start evaluation...
+Evaluation complete in 19m 50s
+Matching accuracy
+Car = 0.9600, 0.9600
+Duck = 0.8550, 0.8550
+Face = 1.0000, 1.0000
+Motorbike = 0.9750, 0.9750
+Winebottle = 0.9650, 0.9650
+average = 0.9510, 0.9510
+Epoch 1/1
+----------
+lr = 1.00e-05, 1.00e-03
+Epoch 1    Iter 20   0.21sample/s Loss=0.2750   Accuracy=0.986 F1=0.986
+Epoch 1    Iter 40   0.21sample/s Loss=0.3750   Accuracy=0.981 F1=0.981
+Epoch 1    Iter 60   0.20sample/s Loss=0.0625   Accuracy=0.997 F1=0.997
+Epoch 1    Iter 80   0.19sample/s Loss=0.0625   Accuracy=0.997 F1=0.997
+Epoch 1    Iter 100  0.20sample/s Loss=0.1375   Accuracy=0.993 F1=0.993
+Over whole epoch 1    -------- Loss: 0.1825 Accuracy: 0.991 F1: 0.991
+
+Start evaluation...
+Evaluation complete in 20m 31s
+Matching accuracy
+Car = 0.9500, 0.9500
+Duck = 0.8450, 0.8450
+Face = 1.0000, 1.0000
+Motorbike = 0.9790, 0.9790
+Winebottle = 0.9490, 0.9490
+average = 0.9446, 0.9446
+Training complete in 2h 56m 2s
