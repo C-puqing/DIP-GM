@@ -2,6 +2,7 @@ import torch
 import torch.optim as optim
 import time
 from pathlib import Path
+from torch.linalg import norm
 
 from data.data_loader_multigraph import GMDataset, get_dataloader
 
@@ -16,10 +17,22 @@ from utils.utils import update_params_from_cmdline
 
 from torch.utils.tensorboard import SummaryWriter
 
-class HammingLoss(torch.nn.Module):
-    def forward(self, suggested, target):
-        errors = suggested * (1.0 - target) + (1.0 - suggested) * target
-        return errors.mean(dim=0).sum()
+class EnergyLoss(torch.nn.Module):
+    def forward(self, costs, preds, truths):
+        '''
+        Forward pass a batch of loss value.
+        @param costs: list of shape (batch_size), each element is torch.Tensor of shape (k, max(num_vertices(G_i)), max(num_vertices(H_i))) 
+        with zero padding describing the unary costs of the k instances
+        @param preds: torch.Tensor of shape (batch_size, max_num_nodes, max_num_nodes) with zero padding 
+        describing a batch of the predicted permutation.
+        @param truths: torch.Tensor of shape (batch_size, max_num_nodes, max_num_nodes) with zero padding 
+        describing a batch of the ground-truth permutation.
+        @return: scalar value of the function $\mathcal{L}(sv,v) = [t(1-v)+v(1-t)] sv$ 
+        '''
+        diff = (preds * (1.0 - truths) + (1.0 - preds) * truths)
+        loss = [norm(-diff[i][:costs[i].shape[0], :costs[i].shape[1]] * costs[i]) for i in range(len(costs))]
+        return sum(loss)
+
 
 lr_schedules = {
     "long_halving": (10, (2, 4, 6, 8, 10), 0.5),
@@ -82,8 +95,8 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
     )
 
     for epoch in range(start_epoch, num_epochs):
-        print("Epoch {}/{}".format(epoch, num_epochs - 1))
         print("-" * 10)
+        print("Epoch {}/{}".format(epoch, num_epochs - 1))
 
         model.train()  # Set model to training mode
 
@@ -113,10 +126,13 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
 
             with torch.set_grad_enabled(True):
                 # forward
-                s_pred_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
+                s_pred_list, unary_costs_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
 
-                loss = sum([criterion(s_pred, perm_mat) for s_pred, perm_mat in zip(s_pred_list, perm_mat_list)])
-                
+                loss = sum([
+                    criterion(unary_costs, s_pred, perm_mat) 
+                    for unary_costs, s_pred, perm_mat in zip(unary_costs_list, s_pred_list, perm_mat_list)
+                ])
+
                 loss /= len(s_pred_list)
 
                 # backward + optimize
@@ -157,8 +173,7 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
         epoch_f1 = epoch_f1 / dataset_size
 
         writer.add_scalars("Train", {"epoch_loss":epoch_loss, 
-                                    "epoch_acc":epoch_acc,
-                                    "epoch_f1":epoch_f1}, epoch)
+                                    "epoch_acc":epoch_acc,}, epoch)
 
         if cfg.save_checkpoint:
             base_path = Path(checkpoint_path / "{:04}".format(epoch + 1))
@@ -187,9 +202,10 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
         acc_dict["matching_accuracy"] = torch.mean(accs)
         acc_dict["f1_score"] = torch.mean(f1_scores)
 
-        writer.add_scalars("Eval", acc_dict, epoch)
+        writer.add_scalars("Eval", {"eval_acc":acc_dict["matching_accuracy"]}, epoch)
 
         scheduler.step()
+        print()
 
     time_elapsed = time.time() - since
     print(
@@ -219,7 +235,7 @@ if __name__ == "__main__":
     image_dataset = {
         x: GMDataset(cfg.DATASET_NAME, sets=x, length=dataset_len[x], obj_resize=(256, 256)) for x in ("train", "test")
     }
-    dataloader = {x: get_dataloader(image_dataset[x], fix_seed=(x == "test"), shuffle=True) for x in ("train", "test")}
+    dataloader = {x: get_dataloader(image_dataset[x], fix_seed=(x == "test"), shuffle=False) for x in ("train", "test")}
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -227,7 +243,7 @@ if __name__ == "__main__":
     model = model.cuda()
 
 
-    criterion = HammingLoss()
+    criterion = EnergyLoss()
 
     backbone_params = list(model.node_layers.parameters()) + list(model.edge_layers.parameters())
     backbone_params += list(model.final_layers.parameters())

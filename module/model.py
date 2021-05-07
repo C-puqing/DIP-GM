@@ -66,12 +66,8 @@ class Net(utils.backbone.VGG16_bn):
             node_features = torch.cat((U, F), dim=-1)
             graph.x = node_features
 
-            '''
-            到此之前，从image中提取出的信息已经构建成了用于匹配的实例图，放置在 graph 中
-            message_pass_node_features对原图进行 Embedding
-            build_edge_features_from_node_features对 Embedding 后的图利用节点特征构建边特征
-            '''
             graph = self.message_pass_node_features(graph)
+            assert torch.any(torch.isnan(graph.x)) == False
             orig_graph = self.build_edge_features_from_node_features(graph)
             orig_graph_list.append(orig_graph)
 
@@ -120,6 +116,7 @@ class Net(utils.backbone.VGG16_bn):
             )
         ]
 
+        # shape of matchings[0] is [batch_size, max_nodes_src, max_nodes_dst]
         matchings = [
             gm_solver(unary_costs, quadratic_costs)
             for gm_solver, unary_costs, quadratic_costs in zip(gm_solvers, unary_costs_list, quadratic_costs_list)
@@ -137,4 +134,4 @@ class Net(utils.backbone.VGG16_bn):
                 **visualization_params,
             )
 
-        return matchings
+        return matchings, unary_costs_list
