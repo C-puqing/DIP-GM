@@ -3,68 +3,58 @@ import torch
 import numpy as np
 from gurobipy import *
 
-'''
-MIPFocus: 1——找可行解，2——找最优解
-ConcurrentMIP
-'''
-
-# mip_params = {
-#     "LogToConsole":0,
-#     "LogFile":"results/voc_all_keypoints/mip_log.log",
-#     "MIPFocus":1,
-#     "SolutionLimit":1
-#     "Method":4,
-# }
-
 def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
-    
     V1, V2 = costs.shape[0], costs.shape[1]
     E1, E2 = edges_src.shape[0], edges_dst.shape[0]
+
+    coeff_x = dict()
+    for i in range(V1):
+        for j in range(V2):
+            coeff_x[(i,j)] = costs[i][j]
+    coeff_y = dict()
+    if E1 != 0 and E2 != 0:
+        for i in range(E1):
+            for j in range(V2):
+                coeff_y[(i,j)] = quadratic_costs[i][j]
 
     model = Model("gm_solver")
     for param, value in solver_params.items():
         model.setParam(param, value)
 
-    # 定义输入变量
-    x = model.addMVar(shape=V1*V2, vtype=GRB.BINARY, name="x")
-    y = model.addMVar(shape=E1*E2, vtype=GRB.BINARY, name="y")
+    x = model.addVars(V1, V2, lb=0, ub=1, vtype=GRB.BINARY, name="x")
+    y = model.addVars(E1, E2, lb=0, ub=1, vtype=GRB.BINARY, name="y")
 
-    costs = costs.flatten()
-    quadratic_costs = quadratic_costs.flatten()
+    obj = x.prod(coeff_x) + y.prod(coeff_y)
+    model.setObjective(obj, GRB.MINIMIZE)
 
     for i in range(V1):
-        idx = i*V2
-        model.addConstr(x[idx:idx+V2].sum() <= 1, name="row"+str(i))
-    for i in range(V2):
-        x_col = [x[j*V2+i] for j in range(V1)]
-        model.addConstr(sum(x_col) <= 1, name="col"+str(i))
-        
+        expr = x.select(i,'*')
+        model.addConstr(quicksum(expr) <= 1, name="")
+    for j in range(V2):
+        expr = x.select('*', j)
+        model.addConstr(quicksum(expr) <= 1, name="")
     for ij in range(E1):
         i, j = edges_src[ij][0], edges_src[ij][1]
-        for k in range(V2):
-            y_ik, y_jl = 0, 0
-            for r in range(E2):
-                # 头节点为 k
-                if edges_dst[r][0] == k:
-                    y_ik += y[ij*E2+r]
-                # 尾节点为 k
-                elif edges_dst[r][1] == k:
-                    y_jl += y[ij*E2+r]
-            model.addConstr(y_ik <= x[i*V2+k], name="")
-            model.addConstr(y_jl <= x[j*V2+k], name="")
-
-    obj = costs @ x + quadratic_costs @ y
-
-    model.setObjective(obj, GRB.MINIMIZE)
+        for kl in range(E2):
+            k, l = edges_dst[kl][0], edges_dst[kl][1]
+            expr = [
+                model.addConstr(y <= x1 * x2, name="")
+                for y,x1,x2 in zip(y.select(ij,kl), x.select(i,k), x.select(j,l))
+            ]
 
     model.optimize()
 
-    costs_paid = np.array(x.X, dtype=np.long)
-    costs_paid.resize((V1,V2))
-    quadratic_costs_paid = np.array(y.X, dtype=np.long)
-    quadratic_costs_paid.resize((E1,E2))
+    assert model.status != GRB.INFEASIBLE
 
-    return costs_paid, quadratic_costs_paid
+    pmat_v = np.zeros(shape=(V1,V2), dtype=np.int32)
+    for indx, var in zip(x, x.select()):
+        pmat_v[indx] = var.X
+    
+    pmat_e = np.zeros(shape=(E1,E2), dtype=np.int32)
+    for indx, var in zip(y, y.select()):
+        pmat_e[indx] = var.X
+
+    return pmat_v, pmat_e
 
 
 class GraphMatchingSolver(torch.autograd.Function):
