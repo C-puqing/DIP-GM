@@ -18,28 +18,6 @@ from utils.utils import update_params_from_cmdline
 
 from tensorboardX import SummaryWriter
 
-class EnergyLoss(torch.nn.Module):
-    def forward(self, costs, preds, truths):
-        '''
-        Forward pass a batch of loss value.
-        @param costs: list of shape (batch_size), each element is torch.Tensor of shape (k, max(num_vertices(G_i)), max(num_vertices(H_i))) 
-        with zero padding describing the unary costs of the k instances
-        @param preds: torch.Tensor of shape (batch_size, max_num_nodes, max_num_nodes) with zero padding 
-        describing a batch of the predicted permutation.
-        @param truths: torch.Tensor of shape (batch_size, max_num_nodes, max_num_nodes) with zero padding 
-        describing a batch of the ground-truth permutation.
-        @return: scalar value of the function $\mathcal{L}(sv,v) = [t(1-v)+v(1-t)] sv$ 
-        '''
-        diff = (preds * (1.0 - truths) + (1.0 - preds) * truths)
-        loss = [(diff[i][:cost.shape[0], :cost.shape[1]] * cost).sum() for i, cost in enumerate(costs)]
-        return sum(loss)/len(loss)
-
-class HammingLoss(torch.nn.Module):
-    def forward(self, suggested, target):
-        errors = suggested * (1.0 - target) + (1.0 - suggested) * target
-        return errors.mean(dim=0).sum()
-
-
     # "long_halving": (10, (2, 4, 6, 8, 10), 0.5),
 lr_schedules = {
     "long_halving": (10, (5, 7, 9), 0.3),
