@@ -57,7 +57,7 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
             visualize = k == 0 and cfg.visualize
             visualization_params = {**cfg.visualization_params, **dict(string_info=cls, true_matchings=perm_mat_list)}
             with torch.set_grad_enabled(False):
-                s_pred_list, unary_costs_list = model(
+                s_pred_list = model(
                     data_list,
                     points_gt,
                     graphs,
@@ -67,8 +67,12 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
                     visualization_params=visualization_params,
                 )
 
-
-            _, _acc_match_num, _acc_total_num = matching_accuracy(s_pred_list[0], perm_mat_list[0])
+            pmat_pred = torch.zeros_like(s_pred_list[0]).to(device)
+            n_p = n_points_gt[0]
+            for j, pred in enumerate(s_pred_list[0]):
+                pmat_pred[j][:n_p[j], :n_p[j]] = torch.nn.functional.one_hot(torch.argmax(pred[:n_p[j], :n_p[j]], dim=1), num_classes=n_p[j])
+                
+            _, _acc_match_num, _acc_total_num = matching_accuracy(pmat_pred, perm_mat_list[0])
             _tp, _fp, _fn = get_pos_neg(s_pred_list[0], perm_mat_list[0])
 
             acc_match_num += _acc_match_num

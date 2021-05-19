@@ -1,8 +1,8 @@
 import torch
 import torch.optim as optim
+from torch.nn.functional import one_hot
 import time
 from pathlib import Path
-from torch.linalg import norm
 
 from data.data_loader_multigraph import GMDataset, get_dataloader
 
@@ -11,11 +11,12 @@ from utils.evaluation_metric import matching_accuracy_from_lists, f1_score, get_
 from eval import eval_model
 
 from module.model import Net
+from module.loss_function import CrossEntropyLoss
 from utils.config import cfg
 
 from utils.utils import update_params_from_cmdline
 
-from torch.utils.tensorboard import SummaryWriter
+from tensorboardX import SummaryWriter
 
 class EnergyLoss(torch.nn.Module):
     def forward(self, costs, preds, truths):
@@ -30,12 +31,18 @@ class EnergyLoss(torch.nn.Module):
         @return: scalar value of the function $\mathcal{L}(sv,v) = [t(1-v)+v(1-t)] sv$ 
         '''
         diff = (preds * (1.0 - truths) + (1.0 - preds) * truths)
-        loss = [norm(-diff[i][:costs[i].shape[0], :costs[i].shape[1]] * costs[i]) for i in range(len(costs))]
-        return sum(loss)
+        loss = [(diff[i][:cost.shape[0], :cost.shape[1]] * cost).sum() for i, cost in enumerate(costs)]
+        return sum(loss)/len(loss)
+
+class HammingLoss(torch.nn.Module):
+    def forward(self, suggested, target):
+        errors = suggested * (1.0 - target) + (1.0 - suggested) * target
+        return errors.mean(dim=0).sum()
 
 
+    # "long_halving": (10, (2, 4, 6, 8, 10), 0.5),
 lr_schedules = {
-    "long_halving": (10, (2, 4, 6, 8, 10), 0.5),
+    "long_halving": (10, (5, 7, 9), 0.3),
     "short_halving": (2, (1,), 0.5),
     "long_nodrop": (10, (10,), 1.0),
     "minirun": (1, (10,), 1.0),
@@ -126,12 +133,9 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
 
             with torch.set_grad_enabled(True):
                 # forward
-                s_pred_list, unary_costs_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
+                s_pred_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
 
-                loss = sum([
-                    criterion(unary_costs, s_pred, perm_mat) 
-                    for unary_costs, s_pred, perm_mat in zip(unary_costs_list, s_pred_list, perm_mat_list)
-                ])
+                loss = sum([criterion(s_pred, perm_mat, n_points_gt_list[0], n_points_gt_list[1]) for s_pred, perm_mat in zip(s_pred_list, perm_mat_list)])
 
                 loss /= len(s_pred_list)
 
@@ -139,9 +143,15 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
                 loss.backward()
                 optimizer.step()
 
-                tp, fp, fn = get_pos_neg_from_lists(s_pred_list, perm_mat_list)
+                pmat_pred = torch.zeros_like(s_pred_list[0]).to(device)
+                n_p = n_points_gt_list[0]
+
+                for i, pred in enumerate(s_pred_list[0]):
+                    pmat_pred[i][:n_p[i], :n_p[i]] = one_hot(torch.argmax(pred[:n_p[i], :n_p[i]], dim=1), num_classes=n_p[i])
+
+                tp, fp, fn = get_pos_neg_from_lists([pmat_pred], perm_mat_list)
                 f1 = f1_score(tp, fp, fn)
-                acc, _, __ = matching_accuracy_from_lists(s_pred_list, perm_mat_list)
+                acc, _, __ = matching_accuracy_from_lists([pmat_pred], perm_mat_list)
 
                 # statistics
                 bs = perm_mat_list[0].size(0)
@@ -235,15 +245,14 @@ if __name__ == "__main__":
     image_dataset = {
         x: GMDataset(cfg.DATASET_NAME, sets=x, length=dataset_len[x], obj_resize=(256, 256)) for x in ("train", "test")
     }
-    dataloader = {x: get_dataloader(image_dataset[x], fix_seed=(x == "test"), shuffle=False) for x in ("train", "test")}
+    dataloader = {x: get_dataloader(image_dataset[x], fix_seed=(x == "test"), shuffle=True) for x in ("train", "test")}
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = Net()
     model = model.cuda()
 
-
-    criterion = EnergyLoss()
+    criterion = CrossEntropyLoss()
 
     backbone_params = list(model.node_layers.parameters()) + list(model.edge_layers.parameters())
     backbone_params += list(model.final_layers.parameters())

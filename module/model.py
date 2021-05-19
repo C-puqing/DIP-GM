@@ -4,13 +4,11 @@ import utils.backbone
 from module.affinity_layer import InnerProductWithWeightsAffinity
 from module.sconv_archs import SiameseSConvOnNodes, SiameseNodeFeaturesToEdgeFeatures
 from module.mip import GraphMatchingModule
+
 from utils.config import cfg
 from utils.feature_align import feature_align
 from utils.utils import lexico_iter
 from utils.visualization import easy_visualize
-
-import numpy as np
-from tqdm import tqdm
 
 
 def normalize_over_channels(x):
@@ -37,6 +35,7 @@ class Net(utils.backbone.VGG16_bn):
             self.global_state_dim,
             self.build_edge_features_from_node_features.num_edge_features)
 
+
     def forward(
         self,
         images,
@@ -50,7 +49,7 @@ class Net(utils.backbone.VGG16_bn):
 
         global_list = []
         orig_graph_list = []
-        # 进行图嵌入和图构造
+
         for image, p, n_p, graph in zip(images, points, n_points, graphs):
             # extract feature
             nodes = self.node_layers(image)
@@ -65,9 +64,9 @@ class Net(utils.backbone.VGG16_bn):
             F = concat_features(feature_align(edges, p, n_p, (256, 256)), n_p)
             node_features = torch.cat((U, F), dim=-1)
             graph.x = node_features
+            assert torch.any(torch.isnan(graph.x)) == False
 
             graph = self.message_pass_node_features(graph)
-            assert torch.any(torch.isnan(graph.x)) == False
             orig_graph = self.build_edge_features_from_node_features(graph)
             orig_graph_list.append(orig_graph)
 
@@ -92,15 +91,6 @@ class Net(utils.backbone.VGG16_bn):
         # Similarities to costs
         quadratic_costs_list = [[-0.5 * x for x in quadratic_costs] for quadratic_costs in quadratic_costs_list]
 
-        if self.training:
-            unary_costs_list = [
-                [
-                    x + 1.0*gt[:dim_src, :dim_tgt]  # Add margin with alpha = 1.0
-                    for x, gt, dim_src, dim_tgt in zip(unary_costs, perm_mat, ns_src, ns_tgt)
-                ]
-                for unary_costs, perm_mat, (ns_src, ns_tgt) in zip(unary_costs_list, perm_mats, lexico_iter(n_points))
-            ]
-
         all_edges = [[item.edge_index for item in graph] for graph in orig_graph_list]
         gm_solvers = [
             GraphMatchingModule(
@@ -116,7 +106,6 @@ class Net(utils.backbone.VGG16_bn):
             )
         ]
 
-        # shape of matchings[0] is [batch_size, max_nodes_src, max_nodes_dst]
         matchings = [
             gm_solver(unary_costs, quadratic_costs)
             for gm_solver, unary_costs, quadratic_costs in zip(gm_solvers, unary_costs_list, quadratic_costs_list)
@@ -134,4 +123,4 @@ class Net(utils.backbone.VGG16_bn):
                 **visualization_params,
             )
 
-        return matchings, unary_costs_list
+        return matchings
