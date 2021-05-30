@@ -18,8 +18,7 @@ datasets = {"PascalVOC": PascalVOC,
 
 class GMDataset(Dataset):
     def __init__(self, name, length, **args):
-        self.name = name # 数据集名称
-        # 获取内置数据集信息，args=["sets=x", "length=dataset_len[x]", "obj_resize=(256, 256)"]
+        self.name = name
         self.ds = datasets[name](**args)
         self.true_epochs = length is None
         self.length = (
