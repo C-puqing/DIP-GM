@@ -1,5 +1,5 @@
+from os import error
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 
 class HammingLoss(torch.nn.Module):
@@ -8,29 +8,10 @@ class HammingLoss(torch.nn.Module):
         return errors.mean(dim=0).sum()
 
 
-class CrossEntropyLoss(nn.Module):
-    def __init__(self):
-        super(CrossEntropyLoss, self).__init__()
-    
-    def BCE(self, y_pred, y):
-        return -(y * torch.log(y_pred)).sum()
-
-    def forward(self, batch_pred_perm, batch_gt_perm, n_src, n_dst):
-        ''' Calculated binary cross entropy between a batch of k graphs and ground-truths
-        @params batch_pred_perm: torch.Tensor of shape [k, max(num_vertices(G_i)), max(num_vertices(H_i))] 
-        with zero padding describing predict permutation matrix of k graphs
-        @params batch_gt_perm: torch.Tensor of shape [k, max(num_vertices(G_i)), max(num_vertices(H_i))] 
-        with zero padding describing ground-truth permutation matrix of k graphs
-        @params n_src: torch.Tensor of shape [k] describing numbers of graph G_i vertices
-        @params n_dst: torch.Tensor of shape [k] describing numbers of graph H_i vertices
-        @return: a scalar value of loss function
-        '''
-        device = batch_pred_perm[0].device
-
-        loss = torch.tensor(0.).to(device)
-        for pred, gt, n_s, n_d in zip (batch_pred_perm, batch_gt_perm, n_src, n_dst):
-            # loss += F.binary_cross_entropy(pred[:n_s, :n_d], gt[:n_s, :n_d], reduction="sum") / n_s
-            loss += self.BCE(pred[:n_s, :n_d], gt[:n_s, :n_d]) / n_s
-
-        # return loss / batch_gt_perm.shape[0]
-        return loss
+class EnergyLoss(torch.nn.Module):
+    def forward(self, suggested, target, unary_costs):
+        errors = torch.tensor(0., device=suggested.device)
+        for pred, gt, cost in zip(suggested, target, unary_costs):
+            n_src, n_dst = cost.shape[0], cost.shape[1]
+            errors += torch.sum((gt[:n_src, :n_dst] - pred[:n_src, :n_dst]) * cost) / n_src
+        return errors / target.shape[0]

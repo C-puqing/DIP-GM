@@ -1,5 +1,6 @@
 import time
 from pathlib import Path
+from networkx.algorithms.operators import unary
 
 import torch
 
@@ -57,7 +58,7 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
             visualize = k == 0 and cfg.visualize
             visualization_params = {**cfg.visualization_params, **dict(string_info=cls, true_matchings=perm_mat_list)}
             with torch.set_grad_enabled(False):
-                s_pred_list = model(
+                s_pred_list, unary_costs_list = model(
                     data_list,
                     points_gt,
                     graphs,
@@ -66,7 +67,6 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
                     visualize_flag=visualize,
                     visualization_params=visualization_params,
                 )
-
 
             _, _acc_match_num, _acc_total_num = matching_accuracy(s_pred_list[0], perm_mat_list[0])
             _tp, _fp, _fn = get_pos_neg(s_pred_list[0], perm_mat_list[0])

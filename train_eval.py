@@ -11,16 +11,15 @@ from utils.evaluation_metric import matching_accuracy_from_lists, f1_score, get_
 from eval import eval_model
 
 from module.model import Net
-from module.loss_function import CrossEntropyLoss
+from module.loss_function import EnergyLoss
 from utils.config import cfg
 
 from utils.utils import update_params_from_cmdline
 
 from tensorboardX import SummaryWriter
 
-    # "long_halving": (10, (2, 4, 6, 8, 10), 0.5),
 lr_schedules = {
-    "long_halving": (10, (5, 7, 9), 0.3),
+    "long_halving": (10, (2, 4, 6, 8, 10), 0.5),
     "short_halving": (2, (1,), 0.5),
     "long_nodrop": (10, (10,), 1.0),
     "minirun": (1, (10,), 1.0),
@@ -111,25 +110,18 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
 
             with torch.set_grad_enabled(True):
                 # forward
-                s_pred_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
+                s_pred_list, unary_costs_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
 
-                loss = sum([criterion(s_pred, perm_mat, n_points_gt_list[0], n_points_gt_list[1]) for s_pred, perm_mat in zip(s_pred_list, perm_mat_list)])
-
-                loss /= len(s_pred_list)
+                loss = [criterion(s_pred, perm_mat, unary_costs) for s_pred, perm_mat, unary_costs in zip(s_pred_list, perm_mat_list, unary_costs_list)]
+                loss = loss[0]
 
                 # backward + optimize
                 loss.backward()
                 optimizer.step()
 
-                pmat_pred = torch.zeros_like(s_pred_list[0]).to(device)
-                n_p = n_points_gt_list[0]
-
-                for i, pred in enumerate(s_pred_list[0]):
-                    pmat_pred[i][:n_p[i], :n_p[i]] = one_hot(torch.argmax(pred[:n_p[i], :n_p[i]], dim=1), num_classes=n_p[i])
-
-                tp, fp, fn = get_pos_neg_from_lists([pmat_pred], perm_mat_list)
+                tp, fp, fn = get_pos_neg_from_lists(s_pred_list, perm_mat_list)
                 f1 = f1_score(tp, fp, fn)
-                acc, _, __ = matching_accuracy_from_lists([pmat_pred], perm_mat_list)
+                acc, _, __ = matching_accuracy_from_lists(s_pred_list, perm_mat_list)
 
                 # statistics
                 bs = perm_mat_list[0].size(0)
@@ -230,7 +222,7 @@ if __name__ == "__main__":
     model = Net()
     model = model.cuda()
 
-    criterion = CrossEntropyLoss()
+    criterion = EnergyLoss()
 
     backbone_params = list(model.node_layers.parameters()) + list(model.edge_layers.parameters())
     backbone_params += list(model.final_layers.parameters())

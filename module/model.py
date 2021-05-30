@@ -131,4 +131,4 @@ class Net(utils.backbone.VGG16_bn):
                 **visualization_params,
             )
 
-        return matchings
+        return matchings, unary_costs_list

@@ -66,7 +66,7 @@ def matching_accuracy(pmat_pred, pmat_gt):
     :param ns: number of exact pairs
     :return: matching accuracy, matched num of pairs, total num of pairs
     """
-    device = pmat_pred[0].device
+    device = pmat_pred.device
     batch_num = pmat_pred.shape[0]
 
     pmat_gt = pmat_gt.to(device)
