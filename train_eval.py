@@ -11,7 +11,7 @@ from utils.evaluation_metric import matching_accuracy_from_lists, f1_score, get_
 from eval import eval_model
 
 from module.model import Net
-from module.loss_function import EnergyLoss
+from module.loss_function import HammingLoss
 from utils.config import cfg
 
 from utils.utils import update_params_from_cmdline
@@ -73,9 +73,9 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
         )
         return model, acc_dict
 
-    _, lr_milestones, lr_decay = lr_schedules[cfg.TRAIN.lr_schedule]
+    lr_params = cfg.TRAIN.lr_schedule
     scheduler = optim.lr_scheduler.MultiStepLR(
-        optimizer, milestones=lr_milestones, gamma=lr_decay
+        optimizer, milestones=lr_params["lr_milestones"], gamma=lr_params["lr_decay"]
     )
 
     for epoch in range(start_epoch, num_epochs):
@@ -110,10 +110,10 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
 
             with torch.set_grad_enabled(True):
                 # forward
-                s_pred_list, unary_costs_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
+                s_pred_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
 
-                loss = [criterion(s_pred, perm_mat, unary_costs) for s_pred, perm_mat, unary_costs in zip(s_pred_list, perm_mat_list, unary_costs_list)]
-                loss = loss[0]
+                loss = sum([criterion(s_pred, perm_mat) for s_pred, perm_mat in zip(s_pred_list, perm_mat_list)])
+                loss /= len(s_pred_list)
 
                 # backward + optimize
                 loss.backward()
@@ -193,6 +193,7 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
             time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60
         )
     )
+    
 
     return model, acc_dict
 
@@ -211,7 +212,7 @@ if __name__ == "__main__":
     torch.manual_seed(cfg.RANDOM_SEED)
 
     dataset_len = {"train": cfg.TRAIN.EPOCH_ITERS * cfg.BATCH_SIZE, "test": cfg.EVAL.SAMPLES}
-    # 从内置数据集中取数据，划分训练集和测试集
+
     image_dataset = {
         x: GMDataset(cfg.DATASET_NAME, sets=x, length=dataset_len[x], obj_resize=(256, 256)) for x in ("train", "test")
     }

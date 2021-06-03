@@ -28,12 +28,8 @@ def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
     obj = x.prod(coeff_x) + y.prod(coeff_y)
     model.setObjective(obj, GRB.MINIMIZE)
 
-    for i in range(V1):
-        expr = x.select(i,'*')
-        model.addConstr(quicksum(expr) <= 1, name="")
-    for j in range(V2):
-        expr = x.select('*', j)
-        model.addConstr(quicksum(expr) <= 1, name="")
+    row_constrs = [model.addConstr(quicksum(x.select(i,'*')) == 1) for i in range(V1)]
+    col_constrs = [model.addConstr(quicksum(x.select('*', j)) == 1) for j in range(V2)]
     for ij in range(E1):
         i = edges_src[ij][0]
         for k in range(V2):

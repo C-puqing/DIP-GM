@@ -58,7 +58,7 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
             visualize = k == 0 and cfg.visualize
             visualization_params = {**cfg.visualization_params, **dict(string_info=cls, true_matchings=perm_mat_list)}
             with torch.set_grad_enabled(False):
-                s_pred_list, unary_costs_list = model(
+                s_pred_list = model(
                     data_list,
                     points_gt,
                     graphs,
