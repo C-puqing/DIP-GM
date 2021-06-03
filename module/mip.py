@@ -1,8 +1,7 @@
 import torch
 import numpy as np
-from gurobipy import Model
-from gurobipy import GRB
-from gurobipy import quicksum
+from gurobipy import *
+
 
 def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
     V1, V2 = costs.shape[0], costs.shape[1]
@@ -34,14 +33,14 @@ def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
         i = edges_src[ij][0]
         for k in range(V2):
             indx_tuple = np.where(edges_dst[:,0] == k)
-            y_list = [y.select(indx) for indx in indx_tuple]
-            constr = [model.addConstr(quicksum(l) <= r) for l, r in zip(y_list, x.select(i,k))]
+            y_list = [(1.0, y.select(ij, indx)[0]) for indx in indx_tuple[0]]
+            model.addConstr(LinExpr(y_list) <= x.select(i,k)[0])
     for ij in range(E1):
         j = edges_src[ij][1]
         for l in range(V2):
             indx_tuple = np.where(edges_dst[:,1] == l)
-            y_list = [y.select(indx) for indx in indx_tuple]
-            constr = [model.addConstr(quicksum(l) <= r) for l, r in zip(y_list, x.select(j,l))]
+            y_list = [(1.0, y.select(ij, indx)[0]) for indx in indx_tuple[0]]
+            model.addConstr(LinExpr(y_list) <= x.select(i,k)[0])
 
     model.optimize()
 
