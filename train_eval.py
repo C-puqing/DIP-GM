@@ -18,12 +18,6 @@ from utils.utils import update_params_from_cmdline
 
 from tensorboardX import SummaryWriter
 
-lr_schedules = {
-    "long_halving": (10, (2, 4, 6, 8, 10), 0.5),
-    "short_halving": (2, (1,), 0.5),
-    "long_nodrop": (10, (10,), 1.0),
-    "minirun": (1, (10,), 1.0),
-}
 
 def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer, resume=False, start_epoch=0):
     print("Start training...")
@@ -223,7 +217,7 @@ if __name__ == "__main__":
     model = Net()
     model = model.cuda()
 
-    criterion = EnergyLoss()
+    criterion = HammingLoss()
 
     backbone_params = list(model.node_layers.parameters()) + list(model.edge_layers.parameters())
     backbone_params += list(model.final_layers.parameters())
@@ -242,7 +236,7 @@ if __name__ == "__main__":
     
     writer = SummaryWriter(str(Path(cfg.model_dir) / ("runs")))
 
-    num_epochs, _, __ = lr_schedules[cfg.TRAIN.lr_schedule]
+    num_epochs = cfg.TRAIN.lr_schedule.num_epochs
     with DupStdoutFileManager(str(Path(cfg.model_dir) / ("train_log.log"))) as _:
         model, accs = train_eval_model(
             model,
