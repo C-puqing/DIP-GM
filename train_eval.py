@@ -187,7 +187,6 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
             time_elapsed // 3600, (time_elapsed // 60) % 60, time_elapsed % 60
         )
     )
-    
 
     return model, acc_dict
 

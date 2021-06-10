@@ -2,15 +2,13 @@
   "default_json": "experiments/voc_basic.json",
   "train_sampling": "all",
   "eval_sampling": "all",
-  "visualize": false,
+  "visualize": true,
+  "save_checkpoint": true,
   "model_dir": "results/voc_all_keypoints",
   "MIP": {
     "lambda_val": 80.0,
     "solver_params": {
-      "LogToConsole" : 0,
-      "NumericFocus" : 2,
-      "Presovle" : 2,
-      "LogFile" : "results/voc_all_keypoints/miplog.log"
+      "LogToConsole": 0
     }
-  }
+  },
 }

@@ -1,6 +1,9 @@
 import torch
 import numpy as np
-from gurobipy import *
+from gurobipy import Model
+from gurobipy import GRB
+from gurobipy import quicksum
+from gurobipy import LinExpr
 
 
 def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
@@ -27,20 +30,10 @@ def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
     obj = x.prod(coeff_x) + y.prod(coeff_y)
     model.setObjective(obj, GRB.MINIMIZE)
 
-    row_constrs = [model.addConstr(quicksum(x.select(i,'*')) == 1) for i in range(V1)]
-    col_constrs = [model.addConstr(quicksum(x.select('*', j)) == 1) for j in range(V2)]
-    for ij in range(E1):
-        i = edges_src[ij][0]
-        for k in range(V2):
-            indx_tuple = np.where(edges_dst[:,0] == k)
-            y_list = [(1.0, y.select(ij, indx)[0]) for indx in indx_tuple[0]]
-            model.addConstr(LinExpr(y_list) <= x.select(i,k)[0])
-    for ij in range(E1):
-        j = edges_src[ij][1]
-        for l in range(V2):
-            indx_tuple = np.where(edges_dst[:,1] == l)
-            y_list = [(1.0, y.select(ij, indx)[0]) for indx in indx_tuple[0]]
-            model.addConstr(LinExpr(y_list) <= x.select(i,k)[0])
+    x_row_constrs = [model.addConstr(quicksum(x.select(i,'*')) <= 1) for i in range(V1)]
+    x_col_constrs = [model.addConstr(quicksum(x.select('*', j)) <= 1) for j in range(V2)]
+    y_row_constrs = [model.addConstr(quicksum(y.select(ij,'*')) <= 1) for ij in range(E1)]
+    y_col_constrs = [model.addConstr(quicksum(y.select('*', kl)) <= 1) for kl in range(E2)]
 
     model.optimize()
 
@@ -128,7 +121,6 @@ class GraphMatchingSolver(torch.autograd.Function):
         costs_paid_prime = torch.from_numpy(costs_paid_prime).to(torch.float32).to(device)
         quadratic_costs_paid_prime = torch.from_numpy(quadratic_costs_paid_prime).to(torch.float32).to(device)
 
-        # -1/lambda * [y(w) - y_lambda(w)]
         grad_costs = -(costs_paid - costs_paid_prime) / (lambda_val + epsilon_val)
         grad_quadratic_costs = -(quadratic_costs_paid - quadratic_costs_paid_prime) / (lambda_val + epsilon_val)
 
