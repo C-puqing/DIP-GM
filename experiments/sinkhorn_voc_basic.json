@@ -1,0 +1,32 @@
+{
+  "BATCH_SIZE": 8,
+  "DATASET_NAME": "PascalVOC",
+  "MODULE": "Sinkhorn",
+  "exclude_willow_classes": false,
+  "EVAL": {
+    "SAMPLES": 1000,
+    "num_graphs_in_matching_instance": 2
+  },
+  "train_sampling": "intersection",
+  "eval_sampling": "intersection",
+  "save_checkpoint": true,
+  "RANDOM_SEED": 123,
+  "warmstart_path": null,
+  "TRAIN": {
+    "EPOCH_ITERS": 2000,
+    "LR": 0.0003,
+    "num_graphs_in_matching_instance": 2,
+    "lr_schedule": {
+      "num_epochs": 10,
+      "lr_milestones": [2,4,6,8,10],
+      "lr_decay": 0.5
+    }
+  },
+  "STATISTIC_STEP": 10,
+  "visualize": false,
+  "visualization_params": {
+    "reduced_vis": true
+  },
+  "evaluate_only": false,
+  "model_dir": "results/sinkhorn/voc_basic"
+}
