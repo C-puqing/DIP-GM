@@ -8,7 +8,6 @@ from models.helper import init_result_matrix
 
 
 def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
-    # print("costs matrix shape: ", costs.shape)
     V1, V2 = costs.shape[0], costs.shape[1]
     E1, E2 = edges_src.shape[0], edges_dst.shape[0]
 
@@ -32,13 +31,13 @@ def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
     obj = x.prod(coefficient_x) + y.prod(coefficient_y)
     model.setObjective(obj, GRB.MINIMIZE)
 
-    # 顶点的行约束
+    # row constraint of vertex
     [model.addConstr(quicksum(x.select(i, '*')) <= 1) for i in range(V1)]
-    # 顶点的列约束
+    # column constraint of vertex
     [model.addConstr(quicksum(x.select('*', j)) <= 1) for j in range(V2)]
-    # 边的行约束
+    # row constraint of edge
     [model.addConstr(quicksum(y.select(ij, '*')) <= 1) for ij in range(E1)]
-    # 边的列约束
+    # column constraint of edge
     [model.addConstr(quicksum(y.select('*', kl)) <= 1) for kl in range(E2)]
 
     beg = 0
@@ -64,7 +63,12 @@ def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
 
     model.optimize()
 
-    assert model.status == GRB.OPTIMAL
+    try:
+        assert model.status == GRB.OPTIMAL
+    except AssertionError as err:
+        print("model status: ", model.status)
+        print("current solution: ", x)
+        raise err
 
     permutation_matrix_x = np.zeros(shape=(V1, V2), dtype=np.long)
     for index, var in zip(x, x.select()):

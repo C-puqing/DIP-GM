@@ -1,3 +1,4 @@
+import importlib
 import json
 import os
 import time
@@ -224,24 +225,24 @@ if __name__ == "__main__":
     dataloader = {x: get_dataloader(image_dataset[x], config.TRAIN.BATCH_SIZE, fix_seed=(x == "test"), shuffle=True)
                   for x in ("train", "test")}
 
-    # # setting model
-    # module = importlib.import_module(config.TRAIN.MODULE)
-    # Net = module.Net
-    # model = Net()
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #
-    # # setting loss function
-    # Loss = module.Loss
-    # criterion = Loss()
+    # setting model
+    module = importlib.import_module(config.TRAIN.MODULE)
+    Net = module.Net
+    model = Net()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # setting loss function
+    Loss = module.Loss
+    criterion = Loss()
 
     # DEBUG
-    from models.PI_SK.model import Net
-    from models.PI_SK.model import CrossEntropyLoss
-
-    model = Net()
-    criterion = CrossEntropyLoss()
-
-    model = model.cuda()
+    # from models.PI_SK.model import Net
+    # from models.PI_SK.model import CrossEntropyLoss
+    #
+    # model = Net()
+    # criterion = CrossEntropyLoss()
+    #
+    # model = model.cuda()
 
     backbone_params = list(model.node_layers.parameters()) + list(model.edge_layers.parameters())
     backbone_params += list(model.final_layers.parameters())
