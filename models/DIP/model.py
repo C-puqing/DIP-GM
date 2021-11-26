@@ -1,8 +1,8 @@
 from torch import nn
 
 import utils.backbone
-from models.DIP.mip import GraphMatchingModule
 from models.DIP.affinity_layer import InnerProductWithWeightsAffinity
+from models.DIP.mip import GraphMatchingModule
 from models.helper import *
 from models.sconv_archs import SiameseSConvOnNodes, SiameseNodeFeaturesToEdgeFeatures
 from utils.config import config
@@ -20,10 +20,26 @@ class Loss(nn.Module):
     def __init__(self):
         super(Loss, self).__init__()
 
+    # @staticmethod
+    # def forward(suggested, target):
+    #     errors = suggested * (1.0 - target) + (1.0 - suggested) * target
+    #     return errors.mean(dim=0).sum()
+    #
+    """
+    2021.11.23 在Hamming损失函数上新增边损失
+    """
     @staticmethod
-    def forward(suggested, target):
-        errors = suggested * (1.0 - target) + (1.0 - suggested) * target
+    def loss_on_node(suggest, target):
+        errors = suggest * (1.0 - target) + (1.0 - suggest) * target
         return errors.mean(dim=0).sum()
+
+    def forward(self, predict_list, ground_truth_list):
+        loss = torch.tensor(0, dtype=torch.float32, device=predict_list[0].device)
+        # calculated hamming loss both node matching and edge matching
+        for pred, gt in zip(predict_list, ground_truth_list):
+            loss += self.loss_on_node(pred, gt)
+
+        return loss
 
 
 class Net(utils.backbone.VGG16_bn):
@@ -38,54 +54,6 @@ class Net(utils.backbone.VGG16_bn):
             self.global_state_dim, self.message_pass_node_features.num_node_features)
         self.edge_affinity = InnerProductWithWeightsAffinity(
             self.global_state_dim, self.build_edge_features_from_node_features.num_edge_features)
-
-    def forward(
-            self,
-            images: list,
-            points: list,
-            graphs: list,
-            n_points: list,
-            perm_mats: list,
-            visualize_flag=False,
-            visualization_params=None,
-    ):
-        # 特征提取
-        unary_costs_list, quadratic_costs_list, all_edges, orig_graph_list = self.feature_extract(
-            images, points, n_points, graphs, perm_mats)
-
-        # 配置图匹配求解模块
-        gm_solvers = [
-            GraphMatchingModule(
-                all_left_edges,
-                all_right_edges,
-                ns_src,
-                ns_tgt,
-                config.SOLVER_SETTING.lambda_val,
-                config.SOLVER_SETTING.solver_params,
-            )
-            for (all_left_edges, all_right_edges), (ns_src, ns_tgt) in zip(
-                lexico_iter(all_edges), lexico_iter(n_points)
-            )
-        ]
-
-        matching_results = [
-            gm_solver(unary_costs, quadratic_costs)
-            for gm_solver, unary_costs, quadratic_costs in zip(gm_solvers, unary_costs_list, quadratic_costs_list)
-        ]
-
-        if visualize_flag:
-            easy_visualize(
-                orig_graph_list,
-                points,
-                n_points,
-                images,
-                unary_costs_list,
-                quadratic_costs_list,
-                matching_results,
-                **visualization_params,
-            )
-
-        return matching_results
 
     def feature_extract(self, images, points, n_points, graphs, perm_mats):
         global_list = []
@@ -143,3 +111,52 @@ class Net(utils.backbone.VGG16_bn):
         all_edges = [[item.edge_index for item in graph] for graph in orig_graph_list]
 
         return unary_costs_list, quadratic_costs_list, all_edges, orig_graph_list
+
+    def forward(
+            self,
+            images: list,
+            points: list,
+            graphs: list,
+            n_points: list,
+            ground_truth_list: list,
+            visualize_flag=False,
+            visualization_params=None,
+    ):
+        # 特征提取
+        unary_costs_list, quadratic_costs_list, all_edges, orig_graph_list = self.feature_extract(
+            images, points, n_points, graphs, ground_truth_list)
+
+        # 配置图匹配求解模块
+        gm_solvers = [
+            GraphMatchingModule(
+                all_left_edges,
+                all_right_edges,
+                ns_src,
+                ns_tgt,
+                config.SOLVER_SETTING.lambda_val,
+                config.SOLVER_SETTING.solver_params,
+            )
+            for (all_left_edges, all_right_edges), (ns_src, ns_tgt) in zip(
+                lexico_iter(all_edges), lexico_iter(n_points)
+            )
+        ]
+
+        matching_results = [
+            gm_solver(unary_costs, quadratic_costs)
+            for gm_solver, unary_costs, quadratic_costs in zip(gm_solvers, unary_costs_list, quadratic_costs_list)
+        ]
+
+        if config.VERBOSE_SETTING.visualize:
+            easy_visualize(
+                orig_graph_list,
+                points,
+                n_points,
+                images,
+                unary_costs_list,
+                quadratic_costs_list,
+                matching_results[0],
+                ground_truth_list,
+                **config.VERBOSE_SETTING.visualization_params,
+            )
+
+        return matching_results

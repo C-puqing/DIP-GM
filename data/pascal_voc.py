@@ -420,7 +420,7 @@ class PascalVOC:
             for anno_dict in anno_list:
                 random.shuffle(anno_dict["keypoints"])
 
-        # build permutation matrices
+        # build vertex permutation matrices
         perm_mat_list = [
             np.zeros([len(_["keypoints"]) for _ in anno_pair], dtype=np.float32) for anno_pair in lexico_iter(anno_list)
         ]
@@ -429,6 +429,9 @@ class PascalVOC:
                 for j, _keypoint in enumerate(s2["keypoints"]):
                     if keypoint["name"] == _keypoint["name"]:
                         perm_mat_list[n][i, j] = 1
+
+        # build edge permutation matrices
+        # perm_mat_list.append(np.zeros([len(_["e"])]))
 
         return anno_list, perm_mat_list
 

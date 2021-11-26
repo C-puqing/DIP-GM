@@ -1,10 +1,12 @@
 import importlib
 import json
 import os
+import sys
 import time
 from pathlib import Path
 
 import torch.optim as optim
+import torch.quantization.fx.utils
 from tensorboardX import SummaryWriter
 
 from data.data_loader_multigraph import GMDataset, get_dataloader
@@ -121,9 +123,11 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
                 s_pred_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
 
                 if config.TRAIN.MODULE == "models.DIP.model":
+                    # the output of model is a list containing a tuple of node matching and edge matching results
+                    s_pred_list = s_pred_list[0]
+
                     # computed model loss
-                    loss = sum([criterion(s_pred, perm_mat) for s_pred, perm_mat in zip(s_pred_list, perm_mat_list)])
-                    loss /= len(s_pred_list)
+                    loss = criterion(s_pred_list, perm_mat_list)
 
                     # computed model accuracy and f1 scores
                     tp, fp, fn = get_pos_neg_from_lists(s_pred_list, perm_mat_list)
@@ -133,6 +137,7 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
                     # output of PI_SK model is a dict that consists of relaxing solution and integer solution
                     relax_sol = s_pred_list["relax_sol"]
                     integer_sol = s_pred_list["perm_mat"]
+
                     # computed model loss
                     ns_src, ns_dst = n_points_gt_list[0], n_points_gt_list[1]
                     loss = criterion(relax_sol, perm_mat_list[0], ns_src, ns_dst)
@@ -141,6 +146,9 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
                     tp, fp, fn = get_pos_neg(integer_sol, perm_mat_list[0])
                     f1 = f1_score(tp, fp, fn)
                     acc, _, __ = matching_accuracy(integer_sol, perm_mat_list[0])
+                elif config.TRAIN.MODULE == "models.BB_GM.model":
+                    loss = sum([criterion(s_pred, perm_mat) for s_pred, perm_mat in zip(s_pred_list, perm_mat_list)])
+                    loss /= len(s_pred_list)
 
                 # backward + optimize
                 loss.backward()
@@ -225,24 +233,25 @@ if __name__ == "__main__":
     dataloader = {x: get_dataloader(image_dataset[x], config.TRAIN.BATCH_SIZE, fix_seed=(x == "test"), shuffle=True)
                   for x in ("train", "test")}
 
+    isDebug = True if sys.gettrace() else False
+    if isDebug:
+        # DEBUG
+        from models.DIP.model import Net
+        from models.DIP.model import Loss
+
+        model = Net()
+    else:
+        module = importlib.import_module(config.TRAIN.MODULE)
+        Net = module.Net
+        model = Net()
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        # setting loss function
+        Loss = module.Loss
+
     # setting model
-    module = importlib.import_module(config.TRAIN.MODULE)
-    Net = module.Net
-    model = Net()
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # setting loss function
-    Loss = module.Loss
+    model = model.cuda()
     criterion = Loss()
-
-    # DEBUG
-    # from models.PI_SK.model import Net
-    # from models.PI_SK.model import CrossEntropyLoss
-    #
-    # model = Net()
-    # criterion = CrossEntropyLoss()
-    #
-    # model = model.cuda()
 
     backbone_params = list(model.node_layers.parameters()) + list(model.edge_layers.parameters())
     backbone_params += list(model.final_layers.parameters())

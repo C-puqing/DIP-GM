@@ -1,13 +1,14 @@
-from itertools import combinations as comb
-import torch
+import ast
 import collections
 import json
-from copy import deepcopy
-import ast
-from warnings import warn
+import os
 import sys
 import time
-import os
+from copy import deepcopy
+from itertools import combinations as comb
+from warnings import warn
+
+import torch
 
 JSON_FILE_KEY = 'default_json'
 

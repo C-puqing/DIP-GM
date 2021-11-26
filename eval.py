@@ -71,8 +71,11 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
 
             _acc_match_num, _acc_total_num, _tp, _fp, _fn = 0, 0, 0, 0, 0
             if config.TRAIN.MODULE == "models.DIP.model":
-                _, _acc_match_num, _acc_total_num = matching_accuracy(s_pred_list[0], perm_mat_list[0])
-                _tp, _fp, _fn = get_pos_neg(s_pred_list[0], perm_mat_list[0])
+                node_matching = s_pred_list[0][0]  # the 0th element of tuple is node matching matrix.
+                _, _acc_match_num, _acc_total_num = matching_accuracy(node_matching, perm_mat_list[0])
+                _tp, _fp, _fn = get_pos_neg(node_matching, perm_mat_list[0])
+                # _, _acc_match_num, _acc_total_num = matching_accuracy(s_pred_list[0], perm_mat_list[0])
+                # _tp, _fp, _fn = get_pos_neg(s_pred_list[0], perm_mat_list[0])
             elif config.TRAIN.MODULE == "models.PI_SK.model":
                 integer_sol = s_pred_list["perm_mat"]
 

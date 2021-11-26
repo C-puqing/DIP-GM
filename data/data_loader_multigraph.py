@@ -12,6 +12,7 @@ from data.pascal_voc import PascalVOC
 from data.willow_obj import WillowObject
 from utils.build_graphs import build_graphs
 from utils.config import config
+from utils.utils import lexico_iter
 
 datasets = {"PascalVOC": PascalVOC,
             "WillowObject": WillowObject,
@@ -91,6 +92,22 @@ class GMDataset(Dataset):
             )
             graph.num_nodes = n_p_gt
             graph_list.append(graph)
+
+        # construct edge matching ground-truth matrices
+        for (src_graph, dst_graph), perm_mat in zip(lexico_iter(graph_list), perm_mat_list):
+            src_edge_indices = src_graph.edge_index.transpose(0, 1)
+            dst_edge_indices = dst_graph.edge_index.transpose(0, 1)
+
+            edge_matching_mat = np.zeros([src_graph.num_edges, dst_graph.num_edges], dtype=np.float32)
+            for n in range(src_graph.num_edges):
+                i, j = src_edge_indices[n][0], src_edge_indices[n][1]
+                for m in range(dst_graph.num_edges):
+                    k, l = dst_edge_indices[m][0], dst_edge_indices[m][1]
+                    # only if their head node and tail node match, a pair of edges is considered to match
+                    if perm_mat[i][k] == 1 and perm_mat[j][l] == 1:
+                        edge_matching_mat[n][m] = 1
+
+            perm_mat_list.append(edge_matching_mat)
 
         ret_dict = {
             "Ps": [torch.Tensor(x) for x in points_gt],

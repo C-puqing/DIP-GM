@@ -32,31 +32,35 @@ def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
     model.setObjective(obj, GRB.MINIMIZE)
 
     # row constraint of vertex
-    [model.addConstr(quicksum(x.select(i, '*')) <= 1) for i in range(V1)]
+    [model.addConstr(quicksum(x.select(i, '*')) <= 1, name="node row constr") for i in range(V1)]
     # column constraint of vertex
-    [model.addConstr(quicksum(x.select('*', j)) <= 1) for j in range(V2)]
+    [model.addConstr(quicksum(x.select('*', j)) <= 1, name="node col constr") for j in range(V2)]
     # row constraint of edge
-    [model.addConstr(quicksum(y.select(ij, '*')) <= 1) for ij in range(E1)]
+    [model.addConstr(quicksum(y.select(ij, '*')) <= 1, name="edge row constr") for ij in range(E1)]
     # column constraint of edge
-    [model.addConstr(quicksum(y.select('*', kl)) <= 1) for kl in range(E2)]
+    [model.addConstr(quicksum(y.select('*', kl)) <= 1, name="edge col constr") for kl in range(E2)]
 
     beg = 0
+    # for all z_{ij} in E_1
     for ij in range(E1):
         i = edges_src[ij][0]
         ls = []
+        # for all u_k in V_2
         for k in range(V2):
             for kl in range(beg, E2):
                 if edges_dst[kl][0] == k:
                     ls.append(y.select(ij, kl)[0])
                 else:
-                    break;
-                beg += 1
-            model.addConstr(quicksum(ls) <= x.select(i, k)[0])
+                    beg += 1
+                    break
+            # \sum_{z_{kl} \in E_2} e_{ij,kl} <= v_{i,k}
+            model.addConstr(quicksum(ls) <= x.select(i, k)[0], name="tp constraint on head node")
 
-    tp_tail_constrs = [
+    # \sum_{z_{kl} \in E_2} e_{ij,kl} <= v_{j,l} for all u_l in V_2, for all z_{ij} in E_1
+    _ = [
         model.addConstr(
-            quicksum([y.select(ij, kl)[0] for kl in range(E2) if edges_dst[kl][1] == l]) <=
-            x.select(edges_src[ij][1], l)[0]
+            quicksum([y.select(ij, kl)[0] for kl in range(E2) if edges_dst[kl][1] == l])
+            <= x.select(edges_src[ij][1], l)[0], name="tp constraint on tail node"
         )
         for ij in range(E1) for l in range(V2)
     ]
@@ -161,14 +165,15 @@ class GraphMatchingModule(torch.nn.Module):
     """
     Torch module for handling batches of Graph Matching Instances
     """
+
     def __init__(
-        self,
-        edges_left_batch,
-        edges_right_batch,
-        num_vertices_s_batch,
-        num_vertices_t_batch,
-        lambda_val,
-        solver_params,
+            self,
+            edges_left_batch,
+            edges_right_batch,
+            num_vertices_s_batch,
+            num_vertices_t_batch,
+            lambda_val,
+            solver_params,
     ):
         """
         Prepares a module for a batch of k graph matching instances, i.e. instances matching graphs G_i, H_i for i=1..k
@@ -197,6 +202,7 @@ class GraphMatchingModule(torch.nn.Module):
         @return: torch.Tensor of shape (k, max(num_vertices(G_i)), max(num_vertices(H_i))) with 0/1 values and
         zero padding. Captures the returned matching from the solver.
         """
+
         def params_generator():
             for edges_left, edges_right in zip(self.edges_left_batch, self.edges_right_batch):
                 yield {"edges_left": edges_left.T, "edges_right": edges_right.T, **self.params}
@@ -221,11 +227,16 @@ class GraphMatchingModule(torch.nn.Module):
                 assert leftover_quadratic_costs < 1e-5, leftover_quadratic_costs
                 yield truncated_costs, truncated_quadratic_costs
 
-        result = init_result_matrix(costs_batch)
-        for i, (params, costs, num_vertices_s, num_vertices_t) in enumerate(
-                zip(params_generator(), costs_generator(), self.num_vertices_s_batch, self.num_vertices_t_batch)
+        vertex_matching = init_result_matrix(costs_batch)
+        edge_matching = init_result_matrix(quadratic_costs_batch)
+        for i, (params, costs, num_vertices_s, num_vertices_t, num_edges_left, num_edges_right) in enumerate(
+                zip(params_generator(), costs_generator(), self.num_vertices_s_batch, self.num_vertices_t_batch,
+                    self.edges_left_batch, self.edges_right_batch)
         ):
             solutions = self.solver.apply(costs[0], costs[1], params)
-            result[i, :num_vertices_s, :num_vertices_t] = solutions[0]  # Only unary matching result returned
+            # save vertex matching result
+            vertex_matching[i, :num_vertices_s, :num_vertices_t] = solutions[0]
+            # save edges matching result
+            edge_matching[i, :num_edges_left.shape[-1], :num_edges_right.shape[-1]] = solutions[1]
 
-        return result
+        return vertex_matching, edge_matching
