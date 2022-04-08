@@ -12,7 +12,6 @@ from data.pascal_voc import PascalVOC
 from data.willow_obj import WillowObject
 from utils.build_graphs import build_graphs
 from utils.config import config
-from utils.utils import lexico_iter
 
 datasets = {"PascalVOC": PascalVOC,
             "WillowObject": WillowObject,

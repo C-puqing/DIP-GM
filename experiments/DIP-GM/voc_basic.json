@@ -8,8 +8,8 @@
 	"TRAIN": {
 		"MODULE": "models.DIP.model",
 		"LOSS_FUNC": "HammingLoss",
-		"BATCH_SIZE": 10,
-		"EPOCH_ITER": 800,
+		"BATCH_SIZE": 8,
+		"EPOCH_ITER": 2000,
 		"LR": 0.0002,
 		"lr_schedule": {
 			"num_epochs": 10,
@@ -18,7 +18,7 @@
 		}
 	},
 	"EVAL": {
-		"SAMPLES": 800
+		"SAMPLES": 1000
 	},
 	"SOLVER_SETTING": {
 		"lambda_val": 80.0,

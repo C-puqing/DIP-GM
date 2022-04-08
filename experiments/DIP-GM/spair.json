@@ -1,15 +1,15 @@
 {
 	"DATASET_SETTING": {
-		"DATASET_NAME": "PascalVOC",
+		"DATASET_NAME": "SPair71k",
 		"exclude_willow_classes": false,
 		"train_sampling": "intersection",
 		"eval_sampling": "intersection"
 	},
 	"TRAIN": {
-		"MODULE": "models.SH.model",
-		"LOSS_FUNC": "PermutationLoss",
-		"BATCH_SIZE": 10,
-		"EPOCH_ITER": 800,
+		"MODULE": "models.DIP.model",
+		"LOSS_FUNC": "HammingLoss",
+		"BATCH_SIZE": 8,
+		"EPOCH_ITER": 400,
 		"LR": 0.0002,
 		"lr_schedule": {
 			"num_epochs": 10,
@@ -18,7 +18,15 @@
 		}
 	},
 	"EVAL": {
-		"SAMPLES": 800
+		"SAMPLES": null
+	},
+	"SOLVER_SETTING": {
+		"lambda_val": 80.0,
+		"relax_geo_constr": false,
+		"solver_params": {
+			"LogToConsole": 0,
+			"LogFile": "results/DIP-GM/spair/mip.txt"
+		}
 	},
 	"VERBOSE_SETTING": {
 		"visualize": false,
@@ -30,5 +38,5 @@
 	"save_checkpoint": true,
 	"warmstart_path": null,
 	"STATISTIC_STEP": 20,
-	"result_dir": "results/sinkhorn/voc_basic"
+	"result_dir": "results/DIP-GM/spair"
 }

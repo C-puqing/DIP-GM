@@ -1,40 +1,43 @@
 {
-  "BATCH_SIZE": 8,
-  "DATASET_NAME": "PascalVOC",
-  "MODULE": "MIP",
-  "exclude_willow_classes": false,
-  "EVAL": {
-    "SAMPLES": 1000,
-    "num_graphs_in_matching_instance": 2
-  },
-  "MIP": {
-    "lambda_val": 80.0,
-    "solver_params": {
-      "LogToConsole" : 0,
-      "LogFile": "results/voc_basic/mip.txt",
-      "MIPGap": 0.5
-    }
-  },
-  "train_sampling": "intersection",
-  "eval_sampling": "intersection",
-  "save_checkpoint": false,
-  "RANDOM_SEED": 123,
-  "warmstart_path": null,
-  "TRAIN": {
-    "EPOCH_ITERS": 2000,
-    "LR": 0.0002,
-    "num_graphs_in_matching_instance": 2,
-    "lr_schedule": {
-      "num_epochs": 10,
-      "lr_milestones": [2, 4, 6, 8, 10],
-      "lr_decay": 0.5
-    }
-  },
-  "STATISTIC_STEP": 20,
-  "visualize": false,
-  "visualization_params": {
-    "reduced_vis": true
-  },
-  "evaluate_only": false,
-  "model_dir": "results/voc_basic"
+	"DATASET_SETTING": {
+		"DATASET_NAME": "PascalVOC",
+		"exclude_willow_classes": false,
+		"train_sampling": "intersection",
+		"eval_sampling": "intersection"
+	},
+	"TRAIN": {
+		"MODULE": "models.DIP.model",
+		"LOSS_FUNC": "HammingLoss",
+		"BATCH_SIZE": 8,
+		"EPOCH_ITER": 2000,
+		"LR": 0.0002,
+		"lr_schedule": {
+			"num_epochs": 10,
+			"lr_milestones": [2, 4, 6, 8, 10],
+			"lr_decay": 0.5
+		}
+	},
+	"EVAL": {
+		"SAMPLES": 1000
+	},
+	"SOLVER_SETTING": {
+		"lambda_val": 80.0,
+		"relax_geo_constr": false,
+		"solver_params": {
+			"LogToConsole": 0,
+			"LogFile": "results/gap_test/gap0.5/mip.txt",
+            "MIPGap": 0.5
+		}
+	},
+	"VERBOSE_SETTING": {
+		"visualize": false,
+		"visualization_params": {
+			"reduced_vis": false
+		}
+	},
+	"evaluate_only": false,
+	"save_checkpoint": true,
+	"warmstart_path": null,
+	"STATISTIC_STEP": 20,
+	"result_dir": "results/gap_test/gap0.5"
 }
