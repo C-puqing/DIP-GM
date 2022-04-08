@@ -1,7 +1,7 @@
 # Deep graph matching meets mixed-integer linear programming: Relax at your own risk ?
 This repository contains implementation of the paper: [Deep graph matching meets mixed-integer linear programming: Relax at your own risk ?](https://arxiv.org/abs/2108.00394)
 
-![avatar](image/pipeline.png)
+![avatar](image/architecture.png)
 
 The project directory is composed as follows:
 - `experiments`: contains configuration files to reproduce the results reported in the paper;
