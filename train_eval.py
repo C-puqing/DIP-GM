@@ -1,7 +1,6 @@
 import importlib
 import json
 import os
-import sys
 import time
 from pathlib import Path
 
@@ -11,6 +10,7 @@ from tensorboardX import SummaryWriter
 
 from data.data_loader_multigraph import GMDataset, get_dataloader
 from eval import eval_model
+from models.lossfunction import HammingLoss, PermutationLoss
 from utils.dup_stdout_manager import DupStdoutFileManager
 from utils.evaluation_metric import *
 from utils.utils import update_params_from_cmdline
@@ -20,8 +20,8 @@ def init_config():
     from utils.config import config
 
     updated_cfg = update_params_from_cmdline(default_params=config)
-    os.makedirs(updated_cfg.VERBOSE_SETTING.result_dir, exist_ok=True)
-    with open(os.path.join(updated_cfg.VERBOSE_SETTING.result_dir, "settings.json"), "w") as f:
+    os.makedirs(updated_cfg.result_dir, exist_ok=True)
+    with open(os.path.join(updated_cfg.result_dir, "settings.json"), "w") as f:
         json.dump(updated_cfg, f)
 
     return updated_cfg
@@ -44,7 +44,7 @@ def eval_one_epoch(model, dataloader):
 
 
 def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer, resume=False, start_epoch=0):
-    print("Start training...")
+    print("Start training..")
 
     since = time.time()
     dataloader["train"].dataset.set_num_graphs(config.num_graphs_in_matching_instance)
@@ -53,7 +53,7 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
     device = next(model.parameters()).device
     print("model on device: {}".format(device))
 
-    checkpoint_path = Path(config.VERBOSE_SETTING.result_dir) / "params"
+    checkpoint_path = Path(config.result_dir) / "params"
     if not checkpoint_path.exists():
         checkpoint_path.mkdir(parents=True)
 
@@ -67,9 +67,9 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
         optimizer.load_state_dict(torch.load(optim_path))
 
     # Evaluation only
-    if config.VERBOSE_SETTING.evaluate_only:
+    if config.evaluate_only:
         assert resume
-        print(f"Evaluating without training...")
+        print(f"Evaluating without training..")
         acc_dict = eval_one_epoch(model, dataloader)
 
         time_elapsed = time.time() - since
@@ -103,7 +103,7 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
         epoch_f1 = 0.0
         running_since = time.time()
         iter_num = 0
-        statistic_step = config.VERBOSE_SETTING.STATISTIC_STEP
+        statistic_step = config.STATISTIC_STEP
 
         # Iterate over data.
         for inputs in dataloader["train"]:
@@ -120,35 +120,26 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
 
             with torch.set_grad_enabled(True):
                 # forward
-                s_pred_list = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
+                output = model(data_list, points_gt_list, graphs_list, n_points_gt_list, perm_mat_list)
 
-                if config.TRAIN.MODULE == "models.DIP.model":
-                    # the output of model is a list containing a tuple of node matching and edge matching results
-                    s_pred_list = s_pred_list[0]
-
+                if config.TRAIN.LOSS_FUNC == "HammingLoss":
                     # computed model loss
-                    loss = criterion(s_pred_list, perm_mat_list)
+                    loss = sum([criterion(s_pred, perm_mat) for s_pred, perm_mat in zip(output, perm_mat_list)])
+                    loss /= len(output)
 
                     # computed model accuracy and f1 scores
-                    tp, fp, fn = get_pos_neg_from_lists(s_pred_list, perm_mat_list)
+                    tp, fp, fn = get_pos_neg_from_lists(output, perm_mat_list)
                     f1 = f1_score(tp, fp, fn)
-                    acc, _, __ = matching_accuracy_from_lists(s_pred_list, perm_mat_list)
-                elif config.TRAIN.MODULE == "models.PI_SK.model":
-                    # output of PI_SK model is a dict that consists of relaxing solution and integer solution
-                    relax_sol = s_pred_list["relax_sol"]
-                    integer_sol = s_pred_list["perm_mat"]
+                    acc, _, __ = matching_accuracy_from_lists(output, perm_mat_list)
+                elif config.TRAIN.LOSS_FUNC == "PermutationLoss":
+                    relax_sol, perm_sol = output["relax_sol"], output["perm_sol"]
+                    loss = criterion(relax_sol, perm_mat_list[0], n_points_gt_list[0], n_points_gt_list[1])
 
-                    # computed model loss
-                    ns_src, ns_dst = n_points_gt_list[0], n_points_gt_list[1]
-                    loss = criterion(relax_sol, perm_mat_list[0], ns_src, ns_dst)
-
-                    # computed model accuracy and f1 scores
-                    tp, fp, fn = get_pos_neg(integer_sol, perm_mat_list[0])
+                    tp, fp, fn = get_pos_neg(perm_sol, perm_mat_list[0])
                     f1 = f1_score(tp, fp, fn)
-                    acc, _, __ = matching_accuracy(integer_sol, perm_mat_list[0])
-                elif config.TRAIN.MODULE == "models.BB_GM.model":
-                    loss = sum([criterion(s_pred, perm_mat) for s_pred, perm_mat in zip(s_pred_list, perm_mat_list)])
-                    loss /= len(s_pred_list)
+                    acc, _, __ = matching_accuracy(perm_sol, perm_mat_list[0])
+                else:
+                    raise ValueError("Unknown loss function type.")
 
                 # backward + optimize
                 loss.backward()
@@ -186,7 +177,7 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
         writer.add_scalars("Train", {"epoch_loss": epoch_loss,
                                      "epoch_acc": epoch_acc, }, epoch)
 
-        if config.VERBOSE_SETTING.save_checkpoint:
+        if config.save_checkpoint:
             base_path = Path(checkpoint_path / "{:04}".format(epoch + 1))
             Path(base_path).mkdir(parents=True, exist_ok=True)
             path = str(base_path / "params.pt")
@@ -218,7 +209,6 @@ def train_eval_model(model, criterion, optimizer, dataloader, num_epochs, writer
 
 
 if __name__ == "__main__":
-    # global false, null, true
     config = init_config()
 
     # construct dataset and dataloader
@@ -233,25 +223,20 @@ if __name__ == "__main__":
     dataloader = {x: get_dataloader(image_dataset[x], config.TRAIN.BATCH_SIZE, fix_seed=(x == "test"), shuffle=True)
                   for x in ("train", "test")}
 
-    isDebug = True if sys.gettrace() else False
-    if isDebug:
-        # DEBUG
-        from models.DIP.model import Net
-        from models.DIP.model import Loss
-
-        model = Net()
-    else:
-        module = importlib.import_module(config.TRAIN.MODULE)
-        Net = module.Net
-        model = Net()
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-        # setting loss function
-        Loss = module.Loss
-
     # setting model
-    model = model.cuda()
-    criterion = Loss()
+    module = importlib.import_module(config.TRAIN.MODULE)
+    Net = module.Net
+    model = Net()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = model.to(device)
+
+    # setting loss function
+    if config.TRAIN.LOSS_FUNC == "HammingLoss":
+        criterion = HammingLoss()
+    elif config.TRAIN.LOSS_FUNC == "PermutationLoss":
+        criterion = PermutationLoss()
+    else:
+        raise ValueError("Unknown loss function type.")
 
     backbone_params = list(model.node_layers.parameters()) + list(model.edge_layers.parameters())
     backbone_params += list(model.final_layers.parameters())
@@ -265,13 +250,13 @@ if __name__ == "__main__":
     ]
     optimizer = optim.Adam(opt_params)
 
-    if not Path(config.VERBOSE_SETTING.result_dir).exists():
-        Path(config.VERBOSE_SETTING.result_dir).mkdir(parents=True)
+    if not Path(config.result_dir).exists():
+        Path(config.result_dir).mkdir(parents=True)
 
-    writer = SummaryWriter(str(Path(config.VERBOSE_SETTING.result_dir) / "runs"))
+    writer = SummaryWriter(str(Path(config.result_dir) / "runs"))
 
     num_epochs = config.TRAIN.lr_schedule.num_epochs
-    with DupStdoutFileManager(str(Path(config.VERBOSE_SETTING.result_dir) / "train_log.log")) as _:
+    with DupStdoutFileManager(str(Path(config.result_dir) / "train_log.log")) as _:
         model, accs = train_eval_model(
             model,
             criterion,
@@ -279,6 +264,6 @@ if __name__ == "__main__":
             dataloader,
             num_epochs=num_epochs,
             writer=writer,
-            resume=config.VERBOSE_SETTING.warmstart_path is not None,
+            resume=config.warmstart_path is not None,
             start_epoch=0,
         )

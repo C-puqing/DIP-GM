@@ -31,7 +31,7 @@ class SConv(torch.nn.Module):
         xs = [x]
 
         for conv in self.convs[:-1]:
-                xs += [F.relu(conv(xs[-1], edge_index, edge_attr))]
+            xs += [F.relu(conv(xs[-1], edge_index, edge_attr))]
 
         xs += [self.convs[-1](xs[-1], edge_index, edge_attr)]
         return xs[-1]

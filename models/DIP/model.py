@@ -1,5 +1,3 @@
-from torch import nn
-
 import utils.backbone
 from models.DIP.affinity_layer import InnerProductWithWeightsAffinity
 from models.DIP.mip import GraphMatchingModule
@@ -9,37 +7,6 @@ from utils.config import config
 from utils.feature_align import feature_align
 from utils.utils import lexico_iter
 from utils.visualization import easy_visualize
-
-
-class Loss(nn.Module):
-    """
-    HammingLoss used in "Black-box deep learning graph matching". The formulation
-    defined as L(v) = v * (1 - v*) + (1 - v) * v*
-    """
-
-    def __init__(self):
-        super(Loss, self).__init__()
-
-    # @staticmethod
-    # def forward(suggested, target):
-    #     errors = suggested * (1.0 - target) + (1.0 - suggested) * target
-    #     return errors.mean(dim=0).sum()
-    #
-    """
-    2021.11.23 在Hamming损失函数上新增边损失
-    """
-    @staticmethod
-    def loss_on_node(suggest, target):
-        errors = suggest * (1.0 - target) + (1.0 - suggest) * target
-        return errors.mean(dim=0).sum()
-
-    def forward(self, predict_list, ground_truth_list):
-        loss = torch.tensor(0, dtype=torch.float32, device=predict_list[0].device)
-        # calculated hamming loss both node matching and edge matching
-        for pred, gt in zip(predict_list, ground_truth_list):
-            loss += self.loss_on_node(pred, gt)
-
-        return loss
 
 
 class Net(utils.backbone.VGG16_bn):
@@ -122,11 +89,9 @@ class Net(utils.backbone.VGG16_bn):
             visualize_flag=False,
             visualization_params=None,
     ):
-        # 特征提取
         unary_costs_list, quadratic_costs_list, all_edges, orig_graph_list = self.feature_extract(
             images, points, n_points, graphs, ground_truth_list)
 
-        # 配置图匹配求解模块
         gm_solvers = [
             GraphMatchingModule(
                 all_left_edges,
@@ -146,7 +111,7 @@ class Net(utils.backbone.VGG16_bn):
             for gm_solver, unary_costs, quadratic_costs in zip(gm_solvers, unary_costs_list, quadratic_costs_list)
         ]
 
-        if config.VERBOSE_SETTING.visualize:
+        if config.visualize:
             easy_visualize(
                 orig_graph_list,
                 points,
@@ -156,7 +121,7 @@ class Net(utils.backbone.VGG16_bn):
                 quadratic_costs_list,
                 matching_results[0],
                 ground_truth_list,
-                **config.VERBOSE_SETTING.visualization_params,
+                **config.visualization_params,
             )
 
         return matching_results

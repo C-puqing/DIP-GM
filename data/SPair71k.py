@@ -58,7 +58,7 @@ class SPair71k:
                 )
             except (OSError, IOError) as e:
                 print(
-                    f"No pickled annotations found for difficulty parameters {difficulty_params} and {self.sets}-set. Filtering..."
+                    f"No pickled annotations found for difficulty parameters {difficulty_params} and {self.sets}-set. Filtering."
                 )
                 ann_files_filtered_dict = {}
 

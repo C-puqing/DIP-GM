@@ -11,7 +11,7 @@
     "lambda_val": 80.0,
     "solver_params": {
       "LogToConsole" : 0,
-      "LogFile": "results/voc_basic/mip.txt"
+      "LogFile": "results/dgmc/mip.txt"
     }
   },
   "train_sampling": "intersection",
@@ -35,5 +35,5 @@
     "reduced_vis": true
   },
   "evaluate_only": false,
-  "model_dir": "results/voc_basic"
+  "model_dir": "results/dgmc"
 }

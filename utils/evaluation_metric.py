@@ -71,10 +71,15 @@ def matching_accuracy(pmat_pred, pmat_gt):
 
     pmat_gt = pmat_gt.to(device)
 
-    assert torch.all((pmat_pred == 0) + (pmat_pred == 1)), "pmat_pred can only contain 0/1 elements."
-    assert torch.all((pmat_gt == 0) + (pmat_gt == 1)), "pmat_gt should only contain 0/1 elements."
-    assert torch.all(torch.sum(pmat_pred, dim=-1) <= 1) and torch.all(torch.sum(pmat_pred, dim=-2) <= 1)
-    assert torch.all(torch.sum(pmat_gt, dim=-1) <= 1) and torch.all(torch.sum(pmat_gt, dim=-2) <= 1)
+    try:
+        assert torch.all((pmat_pred == 0) + (pmat_pred == 1)), "pmat_pred can only contain 0/1 elements."
+        assert torch.all((pmat_gt == 0) + (pmat_gt == 1)), "pmat_gt should only contain 0/1 elements."
+        assert torch.all(torch.sum(pmat_pred, dim=-1) <= 1) and torch.all(torch.sum(pmat_pred, dim=-2) <= 1)
+        assert torch.all(torch.sum(pmat_gt, dim=-1) <= 1) and torch.all(torch.sum(pmat_gt, dim=-2) <= 1)
+    except AssertionError as err:
+        print("pmat_pred", pmat_pred)
+        print("pmat_gt", pmat_gt)
+        raise err
 
     match_num = 0
     total_num = 0

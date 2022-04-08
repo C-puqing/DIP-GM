@@ -35,7 +35,7 @@ def hungarian(s: Tensor, n1: Tensor = None, n2: Tensor = None, nproc: int = 1) -
     :param nproc: number of parallel processes (default: ``nproc=1`` for no parallel)
     :return: :math:`(b\times n_1 \times n_2)` optimal permutation matrix
 
-    .. note::
+    . note::
         We support batched instances with different number of nodes, therefore ``n1`` and ``n2`` are
         required to specify the exact number of objects of each dimension in the batch. If not specified, we assume
         the batched matrices are not padded.

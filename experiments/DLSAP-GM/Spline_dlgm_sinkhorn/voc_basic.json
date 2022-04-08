@@ -26,7 +26,7 @@
 		"SK_iter_nums": 20,
 		"SK_epsilon": 1.0e-10
 	},
-	"VERBOSE_SETTING": {
+	"": {
 		"save_checkpoint": false,
 		"warmstart_path": null,
 		"STATISTIC_STEP": 20,

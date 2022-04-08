@@ -7,63 +7,63 @@ from gurobipy import quicksum
 from models.helper import init_result_matrix
 
 
-def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params):
+def gm_solver(costs, quadratic_costs, edges_src, edges_dst, solver_params, relax_geo_constr=False):
+    model = Model("gm_solver")
+    for param, value in solver_params.items():
+        model.setParam(param, value)
+
     V1, V2 = costs.shape[0], costs.shape[1]
-    E1, E2 = edges_src.shape[0], edges_dst.shape[0]
 
     coefficient_x = dict()
     for i in range(V1):
         for j in range(V2):
             coefficient_x[(i, j)] = costs[i][j]
-    coefficient_y = dict()
-    if E1 != 0 and E2 != 0:
-        for i in range(E1):
-            for j in range(V2):
-                coefficient_y[(i, j)] = quadratic_costs[i][j]
-
-    model = Model("gm_solver")
-    for param, value in solver_params.items():
-        model.setParam(param, value)
-
     x = model.addVars(V1, V2, lb=0, ub=1, vtype=GRB.BINARY, name="x")
-    y = model.addVars(E1, E2, lb=0, ub=1, vtype=GRB.BINARY, name="y")
-
-    obj = x.prod(coefficient_x) + y.prod(coefficient_y)
-    model.setObjective(obj, GRB.MINIMIZE)
-
     # row constraint of vertex
     [model.addConstr(quicksum(x.select(i, '*')) <= 1, name="node row constr") for i in range(V1)]
     # column constraint of vertex
     [model.addConstr(quicksum(x.select('*', j)) <= 1, name="node col constr") for j in range(V2)]
-    # row constraint of edge
-    [model.addConstr(quicksum(y.select(ij, '*')) <= 1, name="edge row constr") for ij in range(E1)]
-    # column constraint of edge
-    [model.addConstr(quicksum(y.select('*', kl)) <= 1, name="edge col constr") for kl in range(E2)]
 
-    beg = 0
-    # for all z_{ij} in E_1
-    for ij in range(E1):
-        i = edges_src[ij][0]
-        ls = []
-        # for all u_k in V_2
-        for k in range(V2):
-            for kl in range(beg, E2):
-                if edges_dst[kl][0] == k:
-                    ls.append(y.select(ij, kl)[0])
-                else:
-                    beg += 1
-                    break
-            # \sum_{z_{kl} \in E_2} e_{ij,kl} <= v_{i,k}
-            model.addConstr(quicksum(ls) <= x.select(i, k)[0], name="tp constraint on head node")
+    coefficient_y = dict()
+    E1, E2 = edges_src.shape[0], edges_dst.shape[0]
+    for i in range(E1):
+        for j in range(E2):
+            coefficient_y[(i, j)] = quadratic_costs[i][j]
+    y = model.addVars(E1, E2, lb=0, ub=1, vtype=GRB.BINARY, name="y")
+    obj = x.prod(coefficient_x) + y.prod(coefficient_y)
 
-    # \sum_{z_{kl} \in E_2} e_{ij,kl} <= v_{j,l} for all u_l in V_2, for all z_{ij} in E_1
-    _ = [
-        model.addConstr(
-            quicksum([y.select(ij, kl)[0] for kl in range(E2) if edges_dst[kl][1] == l])
-            <= x.select(edges_src[ij][1], l)[0], name="tp constraint on tail node"
-        )
-        for ij in range(E1) for l in range(V2)
-    ]
+    if relax_geo_constr:
+        # row constraint of edge
+        [model.addConstr(quicksum(y.select(ij, '*')) <= 1, name="edge row constr") for ij in range(E1)]
+        # column constraint of edge
+        [model.addConstr(quicksum(y.select('*', kl)) <= 1, name="edge col constr") for kl in range(E2)]
+    else:
+        """
+        Geometric Mapping Constraints
+        sum_{z_{kl} in E_2} e_{ij,kl} <= v_{i,k}, for all z_{ij} in E_1, for all u_k in V_2
+        sum_{z_{kl} in E_2} e_{ij,kl} <= v_{j,l}, for all z_{ij} in E_1， for all u_l in V_2 
+        """
+        beg = 0
+        for ij in range(E1):
+            i = edges_src[ij][0]
+            for k in range(V2):
+                ls = []
+                for kl in range(beg, E2):
+                    if edges_dst[kl][0] == k:
+                        ls.append(y.select(ij, kl)[0])
+                        beg += 1
+                    else:
+                        break
+                model.addConstr(quicksum(ls) <= x.select(i, k)[0], name="tp constraint on head node")
+        _ = [
+            model.addConstr(
+                quicksum([y.select(ij, kl)[0] for kl in range(E2) if edges_dst[kl][1] == l])
+                <= x.select(edges_src[ij][1], l)[0], name="tp constraint on tail node"
+            )
+            for ij in range(E1) for l in range(V2)
+        ]
+
+    model.setObjective(obj, GRB.MINIMIZE)
 
     model.optimize()
 
@@ -176,11 +176,11 @@ class GraphMatchingModule(torch.nn.Module):
             solver_params,
     ):
         """
-        Prepares a module for a batch of k graph matching instances, i.e. instances matching graphs G_i, H_i for i=1..k
+        Prepares a module for a batch of k graph matching instances, i.e. instances matching graphs G_i, H_i for i=1.k
         @param edges_left_batch: a list of k torch.Tensors with shape (num_edges(G_i), 2) describing edges of G_i
         @param edges_right_batch: a list of k torch.Tensors with shape (num_edges(H_i), 2) describing edges of H_i
-        @param num_vertices_s_batch: a list of k integers [num_vertices(G_i) for i=1..k]
-        @param num_vertices_t_batch: a list of k integers [num_vertices(H_i) for i=1..k]
+        @param num_vertices_s_batch: a list of k integers [num_vertices(G_i) for i=1.k]
+        @param num_vertices_t_batch: a list of k integers [num_vertices(H_i) for i=1.k]
         @param lambda_val: lambda value for backpropagation by [1]
         @param solver_params: a dict of command line parameters to the solver (see solver documentation)
         """
@@ -228,15 +228,11 @@ class GraphMatchingModule(torch.nn.Module):
                 yield truncated_costs, truncated_quadratic_costs
 
         vertex_matching = init_result_matrix(costs_batch)
-        edge_matching = init_result_matrix(quadratic_costs_batch)
-        for i, (params, costs, num_vertices_s, num_vertices_t, num_edges_left, num_edges_right) in enumerate(
-                zip(params_generator(), costs_generator(), self.num_vertices_s_batch, self.num_vertices_t_batch,
-                    self.edges_left_batch, self.edges_right_batch)
+        for i, (params, costs, num_vertices_s, num_vertices_t) in enumerate(
+                zip(params_generator(), costs_generator(), self.num_vertices_s_batch, self.num_vertices_t_batch)
         ):
             solutions = self.solver.apply(costs[0], costs[1], params)
             # save vertex matching result
             vertex_matching[i, :num_vertices_s, :num_vertices_t] = solutions[0]
-            # save edges matching result
-            edge_matching[i, :num_edges_left.shape[-1], :num_edges_right.shape[-1]] = solutions[1]
 
-        return vertex_matching, edge_matching
+        return vertex_matching

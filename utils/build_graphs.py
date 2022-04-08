@@ -1,8 +1,10 @@
+import torch
 from scipy.spatial import Delaunay
 from scipy.spatial.qhull import QhullError
 
 import itertools
 import numpy as np
+from torch import Tensor
 
 
 def locations_to_features_diffs(x_1, y_1, x_2, y_2):
@@ -59,3 +61,33 @@ def delaunay_triangulate(P: np.ndarray):
             print(err)
             A = np.ones((n, n)) - np.eye(n)
     return A
+
+
+def reshape_edge_feature(F: Tensor, G: Tensor, H: Tensor, device=None) -> Tensor:
+    r"""
+    Given point-level features extracted from images, reshape it into edge feature matrix :math:`X`,
+    where features are arranged by the order of :math:`G`, :math:`H`.
+
+    . math::
+        \mathbf{X}_{e_{ij}} = concat(\mathbf{F}_i, \mathbf{F}_j)
+
+    where :math:`e_{ij}` means an edge connecting nodes :math:`i, j`
+
+    :param F: :math:`(b\times d \times n)` extracted point-level feature matrix.
+     :math:`b`: batch size. :math:`d`: feature dimension. :math:`n`: number of nodes.
+    :param G: :math:`(b\times n \times e)` factorized adjacency matrix, where :math:`\mathbf A = \mathbf G \cdot \mathbf H^\top`. :math:`e`: number of edges.
+    :param H: :math:`(b\times n \times e)` factorized adjacency matrix, where :math:`\mathbf A = \mathbf G \cdot \mathbf H^\top`
+    :param device: device. If not specified, it will be the same as the input
+    :return: edge feature matrix X :math:`(b \times 2d \times e)`
+    """
+    if device is None:
+        device = F.device
+
+    batch_num = F.shape[0]
+    feat_dim = F.shape[1]
+    point_num, edge_num = G.shape[1:3]
+    X = torch.zeros(batch_num, 2 * feat_dim, edge_num, dtype=torch.float32, device=device)
+    X[:, 0:feat_dim, :] = torch.matmul(F, G)
+    X[:, feat_dim:2*feat_dim, :] = torch.matmul(F, H)
+
+    return X

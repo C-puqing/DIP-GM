@@ -11,7 +11,7 @@ The project directory is composed as follows:
 
 ## Get started
 ### Preliminary
-1. Check if findutils(>=4.7.0) is available
+1. Check if `findutils`(>=4.7.0) is available
 2. Check if hdf5 is installed (apt install libhdf5-serial-dev)
 3. Check if cuda 10.1 and cudnn 7 are available
 4. Check if texlive-latex-extra is installed (`apt install texlive-latex-extra`)

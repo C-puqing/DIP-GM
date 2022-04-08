@@ -11,7 +11,7 @@ class PowerIteration(nn.Module):
                     stop_thresh, the methods will be stop.
     """
 
-    def __init__(self, max_iter=1000, stop_thresh=1.0e-3):
+    def __init__(self, max_iter=50, stop_thresh=2e-7):
         super(PowerIteration, self).__init__()
         self.max_iter = max_iter
         self.stop_thresh = stop_thresh
@@ -53,24 +53,13 @@ class Voting(nn.Module):
         self.softmax = nn.Softmax(dim=-1)  # Voting among columns
         self.pixel_thresh = pixel_thresh
 
-    def forward(self, s, nrow_gt, ncol_gt=None):
-        # TODO discard dummy nodes & far away nodes
-        ret_s = torch.zeros_like(s)
-        # filter dummy nodes
-        for b, n in enumerate(nrow_gt):
-            if ncol_gt is None:
-                ret_s[b, 0:n, :] = \
-                    self.softmax(self.alpha * s[b, 0:n, :])
-            else:
-                ret_s[b, 0:n, 0:ncol_gt[b]] = \
-                    self.softmax(self.alpha * s[b, 0:n, 0:ncol_gt[b]])
-
-        return ret_s
+    def forward(self, s):
+        return self.softmax(self.alpha * s)
 
 
-class GMSolver(nn.Module):
+class SpectralMatching(nn.Module):
     def __init__(self, pi_max_iter, stop_thresh):
-        super(GMSolver, self).__init__()
+        super(SpectralMatching, self).__init__()
         self.power_iteration = PowerIteration(pi_max_iter, stop_thresh)
 
     def forward(self, affinity_matrix, num_src, num_dst) -> torch.Tensor:

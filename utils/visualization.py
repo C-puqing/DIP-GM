@@ -1,20 +1,19 @@
 import datetime
-import time
 import os
+import time
 
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
 import torch
-from utils import latex_utils as lu
 from torch_geometric.data import Data
 from torch_geometric.utils.convert import to_networkx
 
+from utils import latex_utils as lu
 from utils.config import config
 from utils.decorators import input_to_numpy
 from utils.utils import UnNormalize, n_and_l_iter_parallel, lexico_iter
-
 
 colors = [
     (0.368, 0.507, 0.71),
@@ -29,7 +28,7 @@ colors = [
 
 
 def visualize_graph(
-    graph, pos, im, suffix, idx, vis_dir, mode="full", edge_colors=None, node_colors=None, true_graph=None
+        graph, pos, im, suffix, idx, vis_dir, mode="full", edge_colors=None, node_colors=None, true_graph=None
 ):
     im = np.rollaxis(im, axis=0, start=3)
 
@@ -69,7 +68,6 @@ def visualize_graph(
         )
         suffix = suffix + "_" + str(int(time.time() * 100))
     elif mode == "triang":
-
         node_colors = np.linspace(0, 1, len(network.nodes))
         nx.draw_networkx(
             network,
@@ -85,14 +83,13 @@ def visualize_graph(
             arrowstyle="-",
         )
     elif mode == "full":
-
         node_colors = np.linspace(0, 1, len(network.nodes))
-        edge_labels = {graph.edge_index[:, i]: f"{i}" for i in range(graph.edge_index.shape[1])}
+        # edge_labels = {graph.edge_index[:, i]: f"{i}" for i in range(graph.edge_index.shape[1])}
 
         nx.draw_networkx(
             network, pos=pos, cmap=plt.get_cmap("Set1"), node_color=node_colors, node_size=100, linewidths=10
         )
-        nx.draw_networkx_edge_labels(network, pos=pos, edge_labels=edge_labels, label_pos=0.3)
+        # nx.draw_networkx_edge_labels(network, pos=pos, edge_labels=edge_labels, label_pos=0.3)
     elif mode == "only_nodes":
         node_colors = np.linspace(0, 1, len(network.nodes))
         nx.draw_networkx_nodes(
@@ -112,21 +109,21 @@ def visualize_graph(
 
 @input_to_numpy
 def easy_visualize(
-    graphs,
-    positions,
-    n_points,
-    images,
-    unary_costs,
-    quadratic_costs,
-    matchings,
-    true_matchings,
-    string_info,
-    reduced_vis,
-    produce_pdf=True,
+        graphs,
+        positions,
+        n_points,
+        images,
+        unary_costs,
+        quadratic_costs,
+        matchings,
+        true_matchings,
+        reduced_vis,
+        string_info="",
+        produce_pdf=True,
 ):
     """
 
-    :param graphs: [num_graphs, bs, ...]
+    :param graphs: [num_graphs, bs, ..]
     :param positions: [num_graphs, bs, 2, max_n_p]
     :param n_points: [num_graphs, bs, n_p]
     :param images: [num_graphs, bs, size, size]
@@ -146,7 +143,7 @@ def easy_visualize(
 
     visualization_string = "visualization"
     latex_file = lu.LatexFile(visualization_string)
-    vis_dir = os.path.join(config.VERBOSE_SETTING.result_dir, visualization_string)
+    vis_dir = os.path.join(config.result_dir, visualization_string)
     unnorm = UnNormalize(config.NORM_MEANS, config.NORM_STD)
     images = [[unnorm(im) for im in im_b] for im_b in images]
 
@@ -178,14 +175,14 @@ def easy_visualize(
 
         files_mge = []
         for (
-            unary_c,
-            quadratic_c,
-            matching,
-            true_matching,
-            (graph_src, graph_tgt),
-            (pos_src, pos_tgt),
-            (im_src, im_tgt),
-            (i, j),
+                unary_c,
+                quadratic_c,
+                matching,
+                true_matching,
+                (graph_src, graph_tgt),
+                (pos_src, pos_tgt),
+                (im_src, im_tgt),
+                (i, j),
         ) in n_and_l_iter_parallel(
             n=[unary_costs_l, quadratic_costs_l, matchings_l, true_matchings_l], l=[graph_l, pos_l, im_l], enum=True
         ):
@@ -231,7 +228,10 @@ def easy_visualize(
         latex_file.add_section_from_figures(name=f"Matched Graphs ({b})", list_of_filenames=files_mge, common_scale=0.7)
 
     time = "{date:%Y-%m-%d_%H-%M-%S}".format(date=datetime.datetime.now())
-    suffix = f"{string_info}_{time}"
+    if string_info is not None:
+        suffix = f"{string_info}_{time}"
+    else:
+        suffix = f"{time}"
     output_file = os.path.join(vis_dir, f"{visualization_string}_{suffix}.pdf")
     if produce_pdf:
         latex_file.produce_pdf(output_file=output_file)

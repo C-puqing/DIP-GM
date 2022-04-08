@@ -304,7 +304,7 @@ class PascalVOC:
                 self.xml_list = pickle.load(f)
             print("xml list loaded from {}".format(self.cache_file))
         else:
-            print("Caching xml list to {}...".format(self.cache_file))
+            print("Caching xml list to {}..".format(self.cache_file))
             self.cache_path.mkdir(exist_ok=True, parents=True)
             with np.load(set_path, allow_pickle=True) as f:
                 self.xml_list = f[sets]

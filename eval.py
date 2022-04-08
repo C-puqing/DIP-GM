@@ -8,14 +8,13 @@ from utils.evaluation_metric import matching_accuracy, f1_score, get_pos_neg
 
 
 def eval_model(model, dataloader, eval_epoch=None, verbose=False):
-    print("Start evaluation...")
+    print("Start evaluation..")
     since = time.time()
 
     device = next(model.parameters()).device
 
-    # 评估某个epoch的模型
     if eval_epoch is not None:
-        model_path = str(Path(config.VERBOSE_SETTING.result_dir) / "params" / "params_{:04}.pt".format(eval_epoch))
+        model_path = str(Path(config.result_dir) / "params" / "params_{:04}.pt".format(eval_epoch))
         print("Loading model parameters from {}".format(model_path))
         model.load_state_dict(torch.load(model_path))
 
@@ -36,7 +35,7 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
 
         running_since = time.time()
         iter_num = 0
-        statistic_step = config.VERBOSE_SETTING.STATISTIC_STEP
+        statistic_step = config.STATISTIC_STEP
 
         ds.set_cls(cls)
         acc_match_num = torch.zeros(1, device=device)
@@ -55,8 +54,8 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
 
             iter_num = iter_num + 1
 
-            visualize = k == 0 and config.VERBOSE_SETTING.visualize
-            visualization_params = {**config.VERBOSE_SETTING.visualization_params,
+            visualize = k == 0 and config.visualize
+            visualization_params = {**config.visualization_params,
                                     **dict(string_info=cls, true_matchings=perm_mat_list)}
             with torch.set_grad_enabled(False):
                 s_pred_list = model(
@@ -70,17 +69,20 @@ def eval_model(model, dataloader, eval_epoch=None, verbose=False):
                 )
 
             _acc_match_num, _acc_total_num, _tp, _fp, _fn = 0, 0, 0, 0, 0
-            if config.TRAIN.MODULE == "models.DIP.model":
-                node_matching = s_pred_list[0][0]  # the 0th element of tuple is node matching matrix.
-                _, _acc_match_num, _acc_total_num = matching_accuracy(node_matching, perm_mat_list[0])
-                _tp, _fp, _fn = get_pos_neg(node_matching, perm_mat_list[0])
-                # _, _acc_match_num, _acc_total_num = matching_accuracy(s_pred_list[0], perm_mat_list[0])
-                # _tp, _fp, _fn = get_pos_neg(s_pred_list[0], perm_mat_list[0])
-            elif config.TRAIN.MODULE == "models.PI_SK.model":
-                integer_sol = s_pred_list["perm_mat"]
-
-                _, _acc_match_num, _acc_total_num = matching_accuracy(integer_sol, perm_mat_list[0])
-                _tp, _fp, _fn = get_pos_neg(integer_sol, perm_mat_list[0])
+            perm_sol = s_pred_list['perm_sol']
+            _, _acc_match_num, _acc_total_num = matching_accuracy(perm_sol, perm_mat_list[0])
+            _tp, _fp, _fn = get_pos_neg(perm_sol, perm_mat_list[0])
+            # if config.TRAIN.MODULE == "models.DIP.model":
+            #     node_matching = s_pred_list[0][0]  # the 0th element of tuple is node matching matrix.
+            #     _, _acc_match_num, _acc_total_num = matching_accuracy(node_matching, perm_mat_list[0])
+            #     _tp, _fp, _fn = get_pos_neg(node_matching, perm_mat_list[0])
+            # elif config.TRAIN.MODULE == "models.power_iteration.model":
+            #     integer_sol = s_pred_list["perm_mat"]
+            #     _, _acc_match_num, _acc_total_num = matching_accuracy(integer_sol, perm_mat_list[0])
+            #     _tp, _fp, _fn = get_pos_neg(integer_sol, perm_mat_list[0])
+            # elif config.TRAIN.MODULE == "models.BB_GM.model":
+            #     _, _acc_match_num, _acc_total_num = matching_accuracy(s_pred_list[0], perm_mat_list[0])
+            #     _tp, _fp, _fn = get_pos_neg(s_pred_list[0], perm_mat_list[0])
 
             acc_match_num += _acc_match_num
             acc_total_num += _acc_total_num
