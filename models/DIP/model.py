@@ -111,7 +111,7 @@ class Net(utils.backbone.VGG16_bn):
             for gm_solver, unary_costs, quadratic_costs in zip(gm_solvers, unary_costs_list, quadratic_costs_list)
         ]
 
-        if config.visualize:
+        if config.VERBOSE_SETTING.visualize:
             easy_visualize(
                 orig_graph_list,
                 points,

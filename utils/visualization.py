@@ -10,7 +10,7 @@ import torch
 from torch_geometric.data import Data
 from torch_geometric.utils.convert import to_networkx
 
-from utils import latex_utils as lu
+import utils.latex_utils as lu
 from utils.config import config
 from utils.decorators import input_to_numpy
 from utils.utils import UnNormalize, n_and_l_iter_parallel, lexico_iter
