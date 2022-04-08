@@ -5,8 +5,7 @@ This repository contains implementation of the paper: [Deep graph matching meets
 
 The project directory is composed as follows:
 - `experiments`: contains configuration files to reproduce the results reported in the paper;
-- `module`: contains the implementation of the various modules that make up the `DIP-GM` model;
-- `SinkhornModule`: contains the implementation of `Sinkhorn` solver and model;
+- `models`: contains the implementation of the model based on difference graph matching solvers, such as DIP(ours), power_iteration and sinkhorn
 - `utils`: several utils;
 
 ## Get started
