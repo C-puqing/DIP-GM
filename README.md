@@ -1,5 +1,8 @@
 # Deep graph matching meets mixed-integer linear programming: Relax at your own risk ?
-This repository contains implementation of the paper: [Deep graph matching meets mixed-integer linear programming: Relax at your own risk ?](https://arxiv.org/abs/2108.00394)
+This repository contains PyTorch implementation of our Pattern Recognition paper: [Deep graph matching meets mixed-integer linear programming: Relax at your own risk ?](https://doi.org/10.1016/j.patcog.2024.110697)
+
+The slides of the presentation on this paper by Romain Raveaux
+http://romain.raveaux.free.fr/document/DifferantiableGraphMatching.pdf
 
 ![avatar](image/architecture.png)
 
@@ -9,6 +12,10 @@ The project directory is composed as follows:
 - `utils`: several utils;
 
 ## Get started
+### Quick Start
+Here is a tutorial introducing what is the differentiable graph matching method on pattern recognition contributed by Romain Raveaux.
+http://romain.raveaux.free.fr/document/AdifferentiablegraphmatchingmethodbasedILPV5.html
+
 ### Preliminary
 1. Check if `findutils`(>=4.7.0) is available
 2. Check if hdf5 is installed (apt install libhdf5-serial-dev)
